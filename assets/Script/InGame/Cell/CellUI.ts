@@ -52,6 +52,8 @@ export class CellUI extends Component {
             this.frame.active = false
         }
     }
+
+    
 }
 
 

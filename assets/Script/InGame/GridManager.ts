@@ -1,24 +1,24 @@
 import { _decorator, Component, Node, randomRangeInt } from 'cc';
 import { CellModel } from './Cell/CellModel';
+import { BaseSingleton } from '../Base/BaseSingleton';
+import { GameManager } from '../Manager/GameManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('GridManager')
-export class GridManager extends Component {
+export class GridManager extends BaseSingleton<GridManager> {
     private GRID_ROWS = 6;
     private GRID_COLS = 5;
     public grid: CellModel[][] = [];
-    private numberMax = 7
+    public numberMax = 8
 
-    public static instance: GridManager
+    public numberMin = 1
 
     public colors: string[] = ["#8C37E4", "#31DA28", "#FF963D", "#12D5C6", "#F54444", "#1592DD", "#DA36B3", "#4449DE", "#8C37E4"]
 
     protected onLoad(): void {
-        GridManager.instance = this
         this.initGrid()
         this.CreateBoard()
     }
-
 
     // Khởi tạo lưới
     private initGrid() {
@@ -26,7 +26,9 @@ export class GridManager extends Component {
         for (let i = 0; i < this.GRID_ROWS; i++) {
             this.grid[i] = [];
             for (let j = 0; j < this.GRID_COLS; j++) {
-                this.grid[i][j] = this.GetDataCellRandom(this.numberMax);
+                this.grid[i][j] = this.GetDataCellRandom();
+                this.grid[i][j].row = i
+                this.grid[i][j].col = j
             }
         }
 
@@ -43,6 +45,8 @@ export class GridManager extends Component {
                 for (let j = 0; j < this.GRID_COLS; j++) {
                     if (this.isMatched(i, j)) {
                         this.grid[i][j] = this.GetDifferentDataCell(this.grid[i][j].value);
+                        this.grid[i][j].row = i
+                        this.grid[i][j].col = j
                         success = false;
                     }
                 }
@@ -53,41 +57,41 @@ export class GridManager extends Component {
     }
 
     private isMatched(i: number, j: number): boolean {
-        const val = this.grid[i][j];
+        const val = this.grid[i][j].value;
 
         // Pattern ngang: [i][j], [i][j+1], [i][j+2]
         if (j + 2 < this.GRID_COLS &&
-            this.grid[i][j + 1] === val && this.grid[i][j + 2] === val) {
+            this.grid[i][j + 1].value === val && this.grid[i][j + 2].value === val) {
             return true;
         }
 
         // Pattern dọc: [i][j], [i+1][j], [i+2][j]
         if (i + 2 < this.GRID_ROWS &&
-            this.grid[i + 1][j] === val && this.grid[i + 2][j] === val) {
+            this.grid[i + 1][j].value === val && this.grid[i + 2][j].value === val) {
             return true;
         }
 
         // Pattern L góc trên trái: [i][j], [i+1][j], [i][j+1]
         if (i + 1 < this.GRID_ROWS && j + 1 < this.GRID_COLS &&
-            this.grid[i + 1][j] === val && this.grid[i][j + 1] === val) {
+            this.grid[i + 1][j].value === val && this.grid[i][j + 1].value === val) {
             return true;
         }
 
         // Pattern L góc trên phải: [i][j], [i+1][j], [i][j-1]
         if (i + 1 < this.GRID_ROWS && j - 1 >= 0 &&
-            this.grid[i + 1][j] === val && this.grid[i][j - 1] === val) {
+            this.grid[i + 1][j].value === val && this.grid[i][j - 1].value === val) {
             return true;
         }
 
         // Pattern L góc dưới trái: [i][j], [i-1][j], [i][j+1]
         if (i - 1 >= 0 && j + 1 < this.GRID_COLS &&
-            this.grid[i - 1][j] === val && this.grid[i][j + 1] === val) {
+            this.grid[i - 1][j].value === val && this.grid[i][j + 1].value === val) {
             return true;
         }
 
         // Pattern L góc dưới phải: [i][j], [i-1][j], [i][j-1]
         if (i - 1 >= 0 && j - 1 >= 0 &&
-            this.grid[i - 1][j] === val && this.grid[i][j - 1] === val) {
+            this.grid[i - 1][j].value === val && this.grid[i][j - 1].value === val) {
             return true;
         }
 
@@ -95,8 +99,8 @@ export class GridManager extends Component {
     }
 
 
-    private GetDataCellRandom(maxRandom: number) {
-        let index = randomRangeInt(0, maxRandom) + 1
+    private GetDataCellRandom() {
+        let index = randomRangeInt(this.numberMin, this.numberMax)
         let color = this.GetColorByValue(index)
         return new CellModel({ value: index, color: color })
     }
@@ -104,7 +108,7 @@ export class GridManager extends Component {
     private GetDifferentDataCell(numberCurrent: number) {
         let random: CellModel = null
         do {
-            random = this.GetDataCellRandom(this.numberMax)
+            random = this.GetDataCellRandom()
         }
         while (random.value == numberCurrent)
         return random;
@@ -114,6 +118,75 @@ export class GridManager extends Component {
     GetColorByValue(index: number): string {
         let i = index % this.colors.length
         return this.colors[i]
+    }
+
+
+    public findConnectedCells(startRow: number, startCol: number): { row: number, col: number }[] {
+        const targetValue = this.grid[startRow][startCol].value;
+
+        if (targetValue <= 0) return;
+
+        const visited = new Set<string>();
+        const matchedCells: { row: number, col: number }[] = [];
+
+        const directions = [
+            { row: 0, col: 1 },   // Phải
+            { row: 1, col: 0 },   // Xuống
+            { row: 0, col: -1 },  // Trái
+            { row: -1, col: 0 },  // Lên
+        ];
+
+        const stack: [number, number][] = [[startRow, startCol]]; // ngắn xếp search theo chiều sâu
+        visited.add(`${startRow},${startCol}`);
+
+        while (stack.length > 0) {
+            const [currentRow, currentCol] = stack.pop()!;
+            matchedCells.push({ row: currentRow, col: currentCol });
+
+            for (const { row: rowOffset, col: colOffset } of directions) {
+                const nextRow = currentRow + rowOffset;
+                const nextCol = currentCol + colOffset;
+              
+                if (
+                    nextRow >= 0 && nextRow < this.GRID_ROWS &&
+                    nextCol >= 0 && nextCol < this.GRID_COLS &&
+                    !visited.has(`${nextRow},${nextCol}`) &&
+                    this.grid[nextRow][nextCol].value === targetValue
+                ) {
+                    visited.add(`${nextRow},${nextCol}`);
+                    stack.push([nextRow, nextCol]);
+                }
+            }
+        }
+
+        return matchedCells.length >= 3 ? matchedCells : [];
+    }
+
+    ResetDataMatch(matched: { row: number, col: number }[]) {
+        for (const cells of matched) {
+            this.grid[cells.row][cells.col].value = - 1;
+        }
+    }
+
+    FillIntheValue() {
+        const rows = GameManager.getInstance().dataGame.json["row"];
+        const cols = GameManager.getInstance().dataGame.json["col"];
+
+        for (let col = 0; col < cols; col++) {
+            for (let row = 0; row < rows; row++) {
+                if (this.grid[row][col].value === -1) {
+                    let bigRow = row + 1;
+                    while (bigRow < rows && this.grid[bigRow][col].value === -1) {
+                        bigRow++;
+                    }
+
+                    if (bigRow < rows) {
+                        this.grid[row][col] = this.grid[bigRow][col];
+                        this.grid[bigRow][col].value = -1;
+                    }
+                }
+            }
+        }
     }
 
 }
