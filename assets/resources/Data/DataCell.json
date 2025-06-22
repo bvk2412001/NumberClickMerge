@@ -1,42 +1,42 @@
 {
     "1": {
         "color": "#8207F5",
-        "index": 1
+        "value": 1
     },
     "2": {
         "color": "#12F023",
-        "index": 2
+        "value": 2
     },
     "3": {
         "color": "#E6DF42",
-        "index": 3
+        "value": 3
     },
     "4": {
         "color": "#4255E6",
-        "index": 4
+        "value": 4
     },
     "5": {
         "color": "#E68442",
-        "index": 5
+        "value": 5
     },
     "6": {
         "color": "#BF42E6",
-        "index": 6
+        "value": 6
     },
     "7": {
         "color": "#42E6DF",
-        "index": 7
+        "value": 7
     },
     "8": {
         "color": "#E64291",
-        "index": 8
+        "value": 8
     },
     "9": {
         "color": "#63E642",
-        "index": 9
+        "value": 9
     },
     "10": {
         "color": "#E64242",
-        "index": 10
+        "value": 10
     }
 }

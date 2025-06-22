@@ -1,14 +1,17 @@
 import { _decorator, Component, Node, randomRangeInt } from 'cc';
+import { CellModel } from './Cell/CellModel';
 const { ccclass, property } = _decorator;
 
 @ccclass('GridManager')
 export class GridManager extends Component {
     private GRID_ROWS = 6;
     private GRID_COLS = 5;
-    public grid: number[][] = [];
+    public grid: CellModel[][] = [];
     private numberMax = 7
 
     public static instance: GridManager
+
+    public colors: string[] = ["#8C37E4", "#31DA28", "#FF963D", "#12D5C6", "#F54444", "#1592DD", "#DA36B3", "#4449DE", "#8C37E4"]
 
     protected onLoad(): void {
         GridManager.instance = this
@@ -23,7 +26,7 @@ export class GridManager extends Component {
         for (let i = 0; i < this.GRID_ROWS; i++) {
             this.grid[i] = [];
             for (let j = 0; j < this.GRID_COLS; j++) {
-                this.grid[i][j] = this.GetNumberRandom(this.numberMax);
+                this.grid[i][j] = this.GetDataCellRandom(this.numberMax);
             }
         }
 
@@ -39,7 +42,7 @@ export class GridManager extends Component {
             for (let i = 0; i < this.GRID_ROWS; i++) {
                 for (let j = 0; j < this.GRID_COLS; j++) {
                     if (this.isMatched(i, j)) {
-                        this.grid[i][j] = this.GetDifferentNumber(this.grid[i][j]);
+                        this.grid[i][j] = this.GetDifferentDataCell(this.grid[i][j].value);
                         success = false;
                     }
                 }
@@ -92,28 +95,25 @@ export class GridManager extends Component {
     }
 
 
-    private GetNumberRandom(maxRandom: number) {
-        return randomRangeInt(0, maxRandom) + 1
+    private GetDataCellRandom(maxRandom: number) {
+        let index = randomRangeInt(0, maxRandom) + 1
+        let color = this.GetColorByValue(index)
+        return new CellModel({ value: index, color: color })
     }
 
-    private GetDifferentNumber(numberCurrent: number) {
-        let random = -1
+    private GetDifferentDataCell(numberCurrent: number) {
+        let random: CellModel = null
         do {
-            random = this.GetNumberRandom(this.numberMax)
+            random = this.GetDataCellRandom(this.numberMax)
         }
-        while (random == numberCurrent)
+        while (random.value == numberCurrent)
         return random;
     }
 
 
-    public Get() {
-        for (let i = 0; i < this.GRID_ROWS; i++) {
-            for (let j = 0; j < this.GRID_COLS - 2; j++) {
-                if (this.grid[i][j] == this.grid[i][j + 1] && this.grid[i][j] == this.grid[i][j + 2]) {
-
-                }
-            }
-        }
+    GetColorByValue(index: number): string {
+        let i = index % this.colors.length
+        return this.colors[i]
     }
 
 }
