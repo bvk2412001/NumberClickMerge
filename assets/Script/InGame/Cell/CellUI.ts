@@ -14,10 +14,8 @@ export class CellUI extends Component {
     @property(Node)
     up: Node = null
 
-
     @property(Node)
     down: Node = null
-
 
     @property(Node)
     frame: Node = null
@@ -43,7 +41,6 @@ export class CellUI extends Component {
             this.up.active = false
             this.down.active = true
         }
-
 
         if (dataCell.value > 7) {
             this.frame.active = true

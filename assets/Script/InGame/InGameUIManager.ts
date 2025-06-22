@@ -15,10 +15,8 @@ export class InGameUIManager extends BaseSingleton<InGameUIManager> {
     @property(Node)
     cellNode: Node = null
 
-
-
     UpdateLayoutContainCell() {
-        this.containNode.getComponent(Layout).updateLayout()
+        this.containNode.getComponent(Layout).updateLayout();
     }
 
 }

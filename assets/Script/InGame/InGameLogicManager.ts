@@ -29,7 +29,7 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
 
 
     init() {
-        this.cellCollection = new CellCollection()
+        this.cellCollection = new CellCollection();
     }
 
     InitContainCells() {

@@ -810,7 +810,7 @@
     "fileId": "0cGB0xiABN4atbb7yzZDMI"
   },
   {
-    "__type__": "e1069W3VJpOKbP5M1LzmndU",
+    "__type__": "4cfe2LV3LtLm62c4GiqIwFH",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -834,13 +834,13 @@
       "__id__": 6
     },
     "frame": {
-      "__id__": 18
+      "__id__": 2
     },
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "e3l10084RLjpPHJGPzpfAq"
+    "fileId": "cabYgVonFNAaTFU3fv7diC"
   },
   {
     "__type__": "cc.PrefabInfo",

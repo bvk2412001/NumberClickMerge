@@ -12,6 +12,7 @@ export class GameManager extends BaseSingleton<GameManager> {
 
 
     protected start(): void {
+
     }
 }
 
