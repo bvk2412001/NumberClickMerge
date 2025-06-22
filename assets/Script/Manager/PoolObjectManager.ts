@@ -26,6 +26,12 @@ export class PoolObjectManager extends BaseSingleton<PoolObjectManager> {
         newNode.active = true
         return newNode
     }
+
+    RecycleObject(obj: Node, key: Prefab) {
+        this.pools.get(key).push(obj);
+
+        obj.active = false;
+    }
 }
 
 

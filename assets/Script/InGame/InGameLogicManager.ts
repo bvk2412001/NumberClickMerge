@@ -44,6 +44,8 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
 
             InGameUIManager.getInstance().UpdateLayoutContainCell()
         }
+
+        log('this.contains: ', this.contains)
     }
 
 
@@ -53,7 +55,7 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
             for (let j = 0; j < GameManager.getInstance().dataGame.json["col"]; j++) {
                 // let dataCell = 
                 let cell = this.CreateCells(GridManager.getInstance().grid[i][j])
-                cell.GetCellUI().setPosition(this.contains[i][j])
+                cell.GetCellUI().setPosition(this.contains[i][j].position)
                 list.push(cell)
             }
 
@@ -61,7 +63,7 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         }
     }
 
-    CreateCells(dataCell: any): Cell {
+    CreateCells(dataCell: CellModel): Cell {
 
         let newCell = this.cellCollection.CreateCell(dataCell)
         return newCell
@@ -108,16 +110,18 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
 
         this.scheduleOnce(() => {
 
-            matched.splice(0, 1)
+            // matched.splice(0, 1)
             this.ResetGrid(matched);
         }, 0.3)
     }
 
     ResetGrid(matched: { row: number, col: number }[]) {
         for (const cell of matched) {
-            const node = this.cells[cell.row][cell.col].GetCellUI();
-            node.removeFromParent();
-            node.destroy();
+            // const node = this.cells[cell.row][cell.col].GetCellUI();
+            // node.removeFromParent();
+            // node.destroy();
+
+            this.cells[cell.row][cell.col].Dispose(); // return pool
 
             this.cells[cell.row][cell.col] = null; // reset node trong mảng
 
@@ -142,7 +146,7 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
                     }
 
                     if (bigRow < rows) {
-                        this.TweenFillNode(this.cells[bigRow][col], this.contains[row][col]);
+                        this.TweenFillNode(this.cells[bigRow][col].GetCellUI(), this.contains[row][col]);
                         this.cells[row][col] = this.cells[bigRow][col];
                         this.cells[bigRow][col] = null;
 

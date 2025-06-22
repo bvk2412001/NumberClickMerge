@@ -146,7 +146,7 @@ export class GridManager extends BaseSingleton<GridManager> {
             for (const { row: rowOffset, col: colOffset } of directions) {
                 const nextRow = currentRow + rowOffset;
                 const nextCol = currentCol + colOffset;
-              
+
                 if (
                     nextRow >= 0 && nextRow < this.GRID_ROWS &&
                     nextCol >= 0 && nextCol < this.GRID_COLS &&

@@ -17,7 +17,6 @@ export class Cell {
     clickEffect: ECELL_CLICK_EFFECT = ECELL_CLICK_EFFECT.Up
     cellState: ECELL_STATE = ECELL_STATE.None
 
-
     constructor(cellData: CellModel) {
         this.cellData = cellData
         this.clickEffect = this.RandomEffectClick()
@@ -40,7 +39,7 @@ export class Cell {
     }
 
     onClick() {
-        this.UpdateCellWhenClick()
+        this.UpdateCellWhenClick();
 
         const matched = GridManager.getInstance().findConnectedCells(this.cellData.row, this.cellData.col);
         if (matched == null || matched == undefined) return;
@@ -49,7 +48,6 @@ export class Cell {
         console.log(matched)
         InGameLogicManager.getInstance().moveMatchedCellsToRoot(this.cellData.row, this.cellData.col, matched);
     }
-
 
     UpdateCellWhenClick() {
         if (this.clickEffect == ECELL_CLICK_EFFECT.Up) {
@@ -76,7 +74,10 @@ export class Cell {
     }
 
     Dispose() {
-        this.RemoveEventClick()
+        this.RemoveEventClick();
+
+        // add cellUi vào pooling
+        PoolObjectManager.getInstance().RecycleObject(this.GetCellUI(), PrefabManager.getInstance().cellPrefab);
     }
 
 }

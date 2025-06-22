@@ -53,7 +53,7 @@ export class CellUI extends Component {
         }
     }
 
-    
+
 }
 
 
