@@ -53,7 +53,7 @@ export class GridManager extends BaseSingleton<GridManager> {
             }
         }
 
-        console.log(this.grid);
+        console.table(this.grid.map(r => r.map(c => c.value)));
     }
 
     private isMatched(i: number, j: number): boolean {
@@ -173,21 +173,34 @@ export class GridManager extends BaseSingleton<GridManager> {
         const cols = GameManager.getInstance().dataGame.json["col"];
 
         for (let col = 0; col < cols; col++) {
-            for (let row = 0; row < rows; row++) {
-                if (this.grid[row][col].value === -1) {
-                    let bigRow = row + 1;
-                    while (bigRow < rows && this.grid[bigRow][col].value === -1) {
-                        bigRow++;
-                    }
+            let dest = -1;                          // chưa có ô trống
 
-                    if (bigRow < rows) {
-                        this.grid[row][col] = this.grid[bigRow][col];
-                        this.grid[bigRow][col].value = -1;
-                    }
+            for (let row = 0; row < rows; row++) {  // ❶ QUÉT TỪ TRÊN XUỐNG
+                if (this.grid[row][col].value === -1) {
+                    // tìm ra ô trống đầu tiên
+                    if (dest === -1) dest = row;
+                } else if (dest !== -1) {
+                    // ❷ KÉO Ô CÓ GIÁ TRỊ XUỐNG VỊ TRÍ dest
+                    this.grid[dest][col] = this.grid[row][col];
+                    this.grid[dest][col].row = dest;          // cập nhật toạ độ
+                    this.grid[dest][col].col = col;
+
+                    // ❸ Tạo ô rỗng ở vị trí cũ
+                    this.grid[row][col] = new CellModel({
+                        value: -1,
+                        color: "",
+                        row,
+                        col,
+                    });
+
+                    dest++; // vị trí trống kế tiếp
                 }
             }
         }
+
+        console.table(this.grid.map(r => r.map(c => c.value)));
     }
+
 
 }
 

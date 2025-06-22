@@ -13,8 +13,6 @@ const { ccclass, property } = _decorator;
 @ccclass('InGameLogicManager')
 export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
 
-
-
     public cellCollection: CellCollection = null
     public cellContainColllection: Node[] = []
 
@@ -124,9 +122,9 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
             this.cells[cell.row][cell.col].Dispose(); // return pool
 
             this.cells[cell.row][cell.col] = null; // reset node trong mảng
-
-            GridManager.getInstance().ResetDataMatch(matched); // reset data trong mảng
         }
+
+        GridManager.getInstance().ResetDataMatch(matched); // reset data trong mảng
 
         GridManager.getInstance().FillIntheValue();
         this.fillIntheBlank();
@@ -138,24 +136,29 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         const cols = GameManager.getInstance().dataGame.json["col"];
 
         for (let col = 0; col < cols; col++) {
-            for (let row = 0; row < rows; row++) {
+            let dest = -1;                               // hàng trống
+
+            for (let row = 0; row < rows; row++) {       // vẫn từ trên xuống
                 if (this.cells[row][col] === null) {
-                    let bigRow = row + 1;
-                    while (bigRow < rows && this.cells[bigRow][col] === null) {
-                        bigRow++;
-                    }
+                    if (dest === -1) dest = row;         // ghi nhận ô trống
+                } else if (dest !== -1) {
+                    // Có cell ở dưới 1 ô trống ⇒ kéo xuống
+                    const fallingCell = this.cells[row][col];
+                    this.TweenFillNode(
+                        fallingCell.GetCellUI(),
+                        this.contains[dest][col]         // tween tới vị trí trống
+                    );
 
-                    if (bigRow < rows) {
-                        this.TweenFillNode(this.cells[bigRow][col].GetCellUI(), this.contains[row][col]);
-                        this.cells[row][col] = this.cells[bigRow][col];
-                        this.cells[bigRow][col] = null;
+                    this.cells[dest][col] = fallingCell; // cập nhật mảng
+                    this.cells[row][col] = null;
 
-                        this.UpdateValueCellBeforeTween(row, col, this.cells[row][col]);
-                    }
+                    this.UpdateValueCellBeforeTween(dest, col, fallingCell);
+                    dest++;                              // trống kế tiếp
                 }
             }
         }
     }
+
 
     TweenFillNode(node: Node, targetNode: Node) {
         if (!node || !targetNode) {
@@ -167,16 +170,27 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
             .start();
     }
 
-    UpdateValueCellBeforeTween(row: number, col: number, cell: Node) {
-        // let dataCell = GameManager.getInstance().dataCell.json[GridManager.getInstance().grid[row][col]]
-        // cell.getComponent(Cell).SetUp(dataCell);
+    private UpdateValueCellBeforeTween(row: number, col: number, cell: Cell) {
+        const model = GridManager.getInstance().grid[row][col];
 
-        // const func = cell.getComponent(CellFunction);
+        model.row = row;
+        model.col = col;
+
+        cell.cellData = model;
+
+        // cell.cellUI.SetUp(model);
+
+        log('cell data: ', cell.cellData)
+
+        cell.cellUI.UpdateUICell(model, cell.clickEffect, cell.cellState);
+
+        // const func = cell.GetCellUI().getComponent(CellFunction);
         // if (func) {
         //     func.row = row;
         //     func.col = col;
         // }
     }
+
 
 }
 
