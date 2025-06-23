@@ -1,34 +1,43 @@
-export type Listener<T> = (payload: T) => void;
+type Listener = (payload: any) => void;
 
 export class EventBus {
-    private static events: Map<string, Listener<any>[]> = new Map();
+    private static events: { [key: string]: Listener[] } = {};
 
-    public static on<T>(event: string, callback: Listener<T>) {
-        if (!this.events.has(event)) {
-            this.events.set(event, []);
+    // Đăng ký sự kiện với context
+    public static on(event: string, callback: Listener, context?: any): () => void {
+        // Bind callback với context nếu context được cung cấp
+        const boundCallback = context ? callback.bind(context) : callback;
+
+        if (!this.events[event]) {
+            this.events[event] = [];
         }
-        this.events.get(event)!.push(callback);
+        this.events[event].push(boundCallback);
+
+        // Trả về hàm hủy đăng ký
+        return () => {
+            this.off(event, boundCallback);
+        };
     }
 
-    public static emit<T>(event: string, payload: T) {
-        if (!this.events.has(event)) return;
-        this.events.get(event)!.forEach(callback => callback(payload));
-    }
-
-    public static off<T>(event: string, callback: Listener<T>) {
-        if (!this.events.has(event)) return;
-        const listeners = this.events.get(event)!;
-        const index = listeners.indexOf(callback);
-        if (index !== -1) {
-            listeners.splice(index, 1);
+    // Phát sự kiện
+    public static emit(event: string, payload: any): void {
+        if (this.events[event]) {
+            this.events[event].forEach((callback) => callback(payload));
         }
     }
 
-    public static clear(event: string) {
-        this.events.delete(event);
+    // Hủy đăng ký sự kiện
+    public static off(event: string, callback: Listener): void {
+        if (this.events[event]) {
+            this.events[event] = this.events[event].filter((cb) => cb !== callback);
+            if (this.events[event].length === 0) {
+                delete this.events[event];
+            }
+        }
     }
 
-    public static clearAll() {
-        this.events.clear();
+    // Xóa tất cả sự kiện
+    public static clear(): void {
+        this.events = {};
     }
 }

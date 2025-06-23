@@ -39,6 +39,13 @@ export class Cell {
     }
 
     onClick() {
+        if (InGameLogicManager.getInstance().IsProcessing) {
+            log("Đang xử lý tự động, không cho click.");
+            return;
+        }
+
+        console.table(GridManager.getInstance().grid.map(r => r.map(c => c.value)));
+
         this.UpdateCellWhenClick();
 
         const matched = GridManager.getInstance().findConnectedCells(this.cellData.row, this.cellData.col);
