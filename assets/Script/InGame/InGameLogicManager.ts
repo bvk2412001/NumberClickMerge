@@ -156,9 +156,79 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
                     dest++;                              // trống kế tiếp
                 }
             }
+
+            // // Sau khi kéo xong, spawn UI cho các ô trống còn lại
+            // if (dest !== -1) {
+            //     for (let spawnRow = 0; spawnRow <= dest; spawnRow++) {
+            //         const data = GridManager.getInstance().grid[spawnRow][col];
+
+            //         const cell = this.CreateCells(data);
+
+            //         // Đặt node ở vị trí trên cao hơn 1 đoạn
+            //         const startPos = this.contains[GridManager.getInstance().grid.length - 1][col].position.clone();
+            //         startPos.y += 150;
+            //         cell.GetCellUI().setPosition(startPos);
+
+            //         // Tween rơi xuống đúng vị trí
+            //         this.TweenFillNode(cell.GetCellUI(), this.contains[spawnRow][col]);
+
+            //         this.cells[spawnRow][col] = cell;
+            //         this.UpdateValueCellBeforeTween(spawnRow, col, cell);
+            //     }
+            // }
+
         }
+
+        this.FillNewBlank(rows, cols);
     }
 
+    FillNewBlank(rows: number, cols: number){
+        for (let col = 0; col < cols; col++) {
+            let dest = -1;                               // hàng trống
+
+            for (let row = 0; row < rows; row++) {       // vẫn từ trên xuống
+                if (this.cells[row][col] === null) {
+                    if (dest === -1) dest = row;         // ghi nhận ô trống
+                } else if (dest !== -1) {
+                    const data = GridManager.getInstance().grid[dest][col];
+
+                    const cell = this.CreateCells(data);
+
+                    // Đặt node ở vị trí trên cao hơn 1 đoạn
+                    const startPos = this.contains[GridManager.getInstance().grid.length - 1][col].position.clone();
+                    startPos.y += 150;
+                    cell.GetCellUI().setPosition(startPos);
+
+                    // Tween rơi xuống đúng vị trí
+                    this.TweenFillNode(cell.GetCellUI(), this.contains[dest][col]);
+
+                    this.cells[dest][col] = cell;
+                    this.UpdateValueCellBeforeTween(dest, col, cell);                             // trống kế tiếp
+                }
+            }
+
+            // // Sau khi kéo xong, spawn UI cho các ô trống còn lại
+            // if (dest !== -1) {
+            //     for (let spawnRow = 0; spawnRow <= dest; spawnRow++) {
+            //         const data = GridManager.getInstance().grid[spawnRow][col];
+
+            //         const cell = this.CreateCells(data);
+
+            //         // Đặt node ở vị trí trên cao hơn 1 đoạn
+            //         const startPos = this.contains[GridManager.getInstance().grid.length - 1][col].position.clone();
+            //         startPos.y += 150;
+            //         cell.GetCellUI().setPosition(startPos);
+
+            //         // Tween rơi xuống đúng vị trí
+            //         this.TweenFillNode(cell.GetCellUI(), this.contains[spawnRow][col]);
+
+            //         this.cells[spawnRow][col] = cell;
+            //         this.UpdateValueCellBeforeTween(spawnRow, col, cell);
+            //     }
+            // }
+
+        }
+    }
 
     TweenFillNode(node: Node, targetNode: Node) {
         if (!node || !targetNode) {
@@ -183,12 +253,6 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         log('cell data: ', cell.cellData)
 
         cell.cellUI.UpdateUICell(model, cell.clickEffect, cell.cellState);
-
-        // const func = cell.GetCellUI().getComponent(CellFunction);
-        // if (func) {
-        //     func.row = row;
-        //     func.col = col;
-        // }
     }
 
 

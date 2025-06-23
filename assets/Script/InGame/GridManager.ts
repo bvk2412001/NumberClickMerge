@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, randomRangeInt } from 'cc';
+import { _decorator, Component, log, Node, randomRangeInt } from 'cc';
 import { CellModel } from './Cell/CellModel';
 import { BaseSingleton } from '../Base/BaseSingleton';
 import { GameManager } from '../Manager/GameManager';
@@ -173,9 +173,11 @@ export class GridManager extends BaseSingleton<GridManager> {
         const cols = GameManager.getInstance().dataGame.json["col"];
 
         for (let col = 0; col < cols; col++) {
+            log('col: ', col)
             let dest = -1;                          // chưa có ô trống
-
+            
             for (let row = 0; row < rows; row++) {  // ❶ QUÉT TỪ TRÊN XUỐNG
+                log('row: ', row)
                 if (this.grid[row][col].value === -1) {
                     // tìm ra ô trống đầu tiên
                     if (dest === -1) dest = row;
@@ -185,23 +187,58 @@ export class GridManager extends BaseSingleton<GridManager> {
                     this.grid[dest][col].row = dest;          // cập nhật toạ độ
                     this.grid[dest][col].col = col;
 
-                    // ❸ Tạo ô rỗng ở vị trí cũ
-                    this.grid[row][col] = new CellModel({
-                        value: -1,
-                        color: "",
-                        row,
-                        col,
-                    });
-
                     dest++; // vị trí trống kế tiếp
                 }
             }
+
+            // Sau khi kéo xong, random các ô trống còn lại ở trên cùng
+            // if (dest !== -1) {
+            //     for (let spawnRow = 0; spawnRow <= dest; spawnRow++) {
+            //         const data = this.GetDataCellRandom();
+            //         data.row = spawnRow;
+            //         data.col = col;
+            //         this.grid[spawnRow][col] = data;
+            //     }
+            // }
+
         }
+
+        this.FillNewValue(rows, cols);
 
         console.table(this.grid.map(r => r.map(c => c.value)));
     }
 
+    FillNewValue(rows: number, cols: number){
+        for (let col = 0; col < cols; col++) {
+            log('col: ', col)
+            let dest = -1;                          // chưa có ô trống
+            
+            for (let row = 0; row < rows; row++) {  // ❶ QUÉT TỪ TRÊN XUỐNG
+                log('row: ', row)
+                if (this.grid[row][col].value === -1) {
+                    // tìm ra ô trống đầu tiên
+                    if (dest === -1) dest = row;
+                } else if (dest !== -1) {
+                    const data = this.GetDataCellRandom();
+                    data.row = dest;
+                    data.col = col;
+                    this.grid[dest][col] = data;
 
+                    dest++; // vị trí trống kế tiếp
+                }
+            }
+
+            // Sau khi kéo xong, random các ô trống còn lại ở trên cùng
+            // if (dest !== -1) {
+            //     for (let spawnRow = 0; spawnRow <= dest; spawnRow++) {
+            //         const data = this.GetDataCellRandom();
+            //         data.row = spawnRow;
+            //         data.col = col;
+            //         this.grid[spawnRow][col] = data;
+            //     }
+            // }
+        }
+    }
 }
 
 
