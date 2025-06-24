@@ -88,15 +88,12 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
     ClickCheckToMove(rootRow: number, rootCol: number, matched: { row: number, col: number }[]) {
         this.moveMatchedCellsToRoot(rootRow, rootCol, matched);
 
-        this.scheduleOnce(() => {
+        // this.scheduleOnce(() => {
 
-            // matched.splice(0, 1)
-            this.ResetGrid(matched);
-        }, 0.3)
+        // }, 0.3)
     }
 
     public moveMatchedCellsToRoot(rootRow: number, rootCol: number, matched: { row: number, col: number }[]) {
-        log('moveMatchedCellsToRoot')
         const rootNode = this.cells[rootRow][rootCol].GetCellUI();
         const rootPos = rootNode.getPosition();
 
@@ -124,11 +121,17 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
                     tween(node)
                         .to(0.15, { position: midPos })
                         .to(0.15, { position: rootPos })
+                        .call(() => {
+                            this.ResetGrid(matched);
+                        })
                         .start();
                 }
             } else {
                 tween(node)
                     .to(0.25, { position: rootPos })
+                    .call(() => {
+                        this.ResetGrid(matched);
+                    })
                     .start();
             }
 
@@ -136,8 +139,6 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
     }
 
     ResetGrid(matched: { row: number, col: number }[]) {
-        log('ResetGrid')
-
         const root = matched[0]; // ô đầu tiên là gốc
         const gridMgr = GridManager.getInstance();
         const rootModel = gridMgr.grid[root.row][root.col];
@@ -234,7 +235,11 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
 
         tween(node)
             .to(0.2, { position: targetNode.position.clone() })
+
+
             .start();
+
+
     }
 
     private UpdateValueCellBeforeTween(row: number, col: number, cell: Cell) {
@@ -276,45 +281,30 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
     public checkAllMatchingGroupsLoop() {
         this.isProcessing = true;
 
-        while (true) {
-            var matchGroups = this.findAllMatchedGroups();
-            if (matchGroups.length === 0) {
-                this.isProcessing = false; // cho phép click lại
-                error("Không còn ô nào match.");
-                break;
-            }
-
-            log(`Có ${matchGroups.length} nhóm match`);
-
-            let cellRoot = matchGroups[0];
-            let rootRow = cellRoot.root.row;
-            let rootCol = cellRoot.root.col;
-            let matched = cellRoot.cells
-
-            log('cellRoot: ', cellRoot)
-            this.processAllMatchGroups(rootRow, rootCol, matched);
-
-            this.fillIntheBlank();
-            GridManager.getInstance().FillIntheValue();
+        var matchGroups = this.findAllMatchedGroups();
+        if (matchGroups.length === 0) {
+            this.isProcessing = false; // cho phép click lại
+            error("Không còn ô nào match.");
+            return;
         }
 
-        log('matchGroups: ', matchGroups)
+
+        let cellRoot = matchGroups[0];
+        let rootRow = cellRoot.root.row;
+        let rootCol = cellRoot.root.col;
+        let matched = cellRoot.cells
+
+
+        this.processAllMatchGroups(rootRow, rootCol, matched);
+
+        this.fillIntheBlank();
+        GridManager.getInstance().FillIntheValue();
+
     }
 
     private processAllMatchGroups(rootRow: number, rootCol: number, matched: { row: number, col: number }[]) {
-        // for (const group of groups) {
-        //     this.tweenMatchedGroup(group.root, group.cells); // chỉ tween
-        // }
-
-        // this.delay(500);
-
-        // for (const group of groups) {
-        //     this.moveMatchedCellsToRoot(group.root, group.cells);
-        // }
 
         this.moveMatchedCellsToRoot(rootRow, rootCol, matched);
-
-        // this.isAuto = false;
     }
 
     private delay(ms: number) {
