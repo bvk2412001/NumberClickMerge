@@ -183,11 +183,9 @@ export class GridManager extends BaseSingleton<GridManager> {
 
     SwapValue(rows: number, cols: number) {
         for (let col = 0; col < cols; col++) {
-            log('col: ', col)
             let dest = -1;                          // chưa có ô trống
 
             for (let row = 0; row < rows; row++) {  // ❶ QUÉT TỪ TRÊN XUỐNG
-                log('row: ', row)
                 if (this.grid[row][col].value === -1) {
                     // tìm ra ô trống đầu tiên
                     if (dest === -1) dest = row;

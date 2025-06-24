@@ -97,6 +97,9 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         const rootNode = this.cells[rootRow][rootCol].GetCellUI();
         const rootPos = rootNode.getPosition();
 
+        let finished = 0;                                   // đếm tween đã xong
+        const needFinish = matched.length - 1;
+
         for (const cell of matched) {
             if (cell.row === rootRow && cell.col === rootCol) continue;
 
@@ -122,7 +125,7 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
                         .to(0.15, { position: midPos })
                         .to(0.15, { position: rootPos })
                         .call(() => {
-                            this.ResetGrid(matched);
+                            finished++;
                         })
                         .start();
                 }
@@ -130,12 +133,19 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
                 tween(node)
                     .to(0.25, { position: rootPos })
                     .call(() => {
-                        this.ResetGrid(matched);
+                        finished++;
                     })
                     .start();
             }
-
         }
+
+        this.schedule(() => {
+            if (finished === needFinish) {
+                // Chỉ chạy duy nhất 1 lần
+                this.ResetGrid(matched);
+                finished++;
+            }
+        })
     }
 
     ResetGrid(matched: { row: number, col: number }[]) {
@@ -143,6 +153,10 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         const gridMgr = GridManager.getInstance();
         const rootModel = gridMgr.grid[root.row][root.col];
         const newValue = rootModel.value + 1;
+
+        log('root: ', root)
+        log('rootModel: ', rootModel)
+        log('newValue: ', newValue)
 
         // Gán -1 cho toàn bộ ô matched (bao gồm root)
         gridMgr.ResetDataMatch(matched);

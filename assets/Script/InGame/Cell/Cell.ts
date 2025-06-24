@@ -70,6 +70,12 @@ export class Cell {
 
     }
 
+    UpDateWhenMerge() {
+        this.cellData.value++;
+        this.cellData.color = GridManager.getInstance().GetColorByValue(this.cellData.value);
+        this.cellUI.UpdateUICell(this.cellData, this.clickEffect, this.cellState);
+    }
+
     GetCellUI() {
         return this.cellUI.node
     }
