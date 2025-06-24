@@ -170,11 +170,11 @@ export class GridManager extends BaseSingleton<GridManager> {
         }
     }
 
-    async FillIntheValue() {
+    FillIntheValue() {
         const rows = GameManager.getInstance().dataGame.json["row"];
         const cols = GameManager.getInstance().dataGame.json["col"];
 
-        await this.SwapValue(rows, cols);
+        this.SwapValue(rows, cols);
 
         this.FillNewValue(rows, cols);
 

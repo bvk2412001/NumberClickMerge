@@ -52,8 +52,8 @@ export class Cell {
         if (matched == null || matched == undefined) return;
         log('matched: ', matched);
         if (matched.length < 3) return;
-        console.log(matched)
-        InGameLogicManager.getInstance().moveMatchedCellsToRoot(this.cellData.row, this.cellData.col, matched);
+
+        InGameLogicManager.getInstance().ClickCheckToMove(this.cellData.row, this.cellData.col, matched); // match khi click
     }
 
     UpdateCellWhenClick() {

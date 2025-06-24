@@ -85,6 +85,15 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         return newCell
     }
 
+    ClickCheckToMove(rootRow: number, rootCol: number, matched: { row: number, col: number }[]) {
+        this.moveMatchedCellsToRoot(rootRow, rootCol, matched);
+
+        this.scheduleOnce(() => {
+
+            // matched.splice(0, 1)
+            this.ResetGrid(matched);
+        }, 0.3)
+    }
 
     public moveMatchedCellsToRoot(rootRow: number, rootCol: number, matched: { row: number, col: number }[]) {
         log('moveMatchedCellsToRoot')
@@ -124,15 +133,9 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
             }
 
         }
-
-        this.scheduleOnce(() => {
-
-            // matched.splice(0, 1)
-            this.ResetGrid(matched);
-        }, 0.3)
     }
 
-    async ResetGrid(matched: { row: number, col: number }[]) {
+    ResetGrid(matched: { row: number, col: number }[]) {
         log('ResetGrid')
 
         const root = matched[0]; // ô đầu tiên là gốc
@@ -155,7 +158,7 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         // 👉 Xoá hết cell matched UI (kể cả gốc)
         for (const cell of matched) {
             if (this.cells[cell.row][cell.col]) {
-                await this.cells[cell.row][cell.col].Dispose();
+                this.cells[cell.row][cell.col].Dispose();
                 this.cells[cell.row][cell.col] = null;
             }
         }
@@ -170,10 +173,12 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         this.UpdateValueCellBeforeTween(root.row, root.col, nodeCell);
 
         // Fill tiếp và check match tiếp theo
-        await this.fillIntheBlank();
-        await gridMgr.FillIntheValue();
+        this.fillIntheBlank();
+        gridMgr.FillIntheValue();
 
-        // await this.checkAllMatchingGroupsLoop();
+        this.scheduleOnce(() => {
+            this.checkAllMatchingGroupsLoop();
+        })
     }
 
     async fillIntheBlank() {
@@ -214,7 +219,7 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         } else {
             const nodeCell = this.CreateCells(cell);
             const startPos = this.contains[GameManager.getInstance().dataGame.json["row"] - 1][col].position.clone();
-            startPos.y += 150;
+            startPos.y += 250;
             nodeCell.GetCellUI().setPosition(startPos);
             this.TweenFillNode(nodeCell.GetCellUI(), this.contains[row][col]);
             this.cells[row][col] = nodeCell;
@@ -246,8 +251,10 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
     private findAllMatchedGroups() {
         const rows = GameManager.getInstance().dataGame.json["row"];
         const cols = GameManager.getInstance().dataGame.json["col"];
+
         const grid = GridManager.getInstance().grid;
         const visited = new Set<string>();
+
         const matchGroups: { root: { row: number, col: number }, cells: { row: number, col: number }[] }[] = [];
 
         for (let i = 0; i < rows; i++) {
@@ -266,11 +273,11 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         return matchGroups;
     }
 
-    public async checkAllMatchingGroupsLoop() {
+    public checkAllMatchingGroupsLoop() {
         this.isProcessing = true;
 
         while (true) {
-            const matchGroups = this.findAllMatchedGroups();
+            var matchGroups = this.findAllMatchedGroups();
             if (matchGroups.length === 0) {
                 this.isProcessing = false; // cho phép click lại
                 error("Không còn ô nào match.");
@@ -279,99 +286,40 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
 
             log(`Có ${matchGroups.length} nhóm match`);
 
-            await this.processAllMatchGroups(matchGroups);
+            let cellRoot = matchGroups[0];
+            let rootRow = cellRoot.root.row;
+            let rootCol = cellRoot.root.col;
+            let matched = cellRoot.cells
 
-            await this.fillIntheBlank();
-            await GridManager.getInstance().FillIntheValue();
+            log('cellRoot: ', cellRoot)
+            this.processAllMatchGroups(rootRow, rootCol, matched);
+
+            this.fillIntheBlank();
+            GridManager.getInstance().FillIntheValue();
         }
+
+        log('matchGroups: ', matchGroups)
     }
 
-    private async processAllMatchGroups(groups: { root: { row: number, col: number }, cells: { row: number, col: number }[] }[]) {
-        for (const group of groups) {
-            this.tweenMatchedGroup(group.root, group.cells); // chỉ tween
-        }
+    private processAllMatchGroups(rootRow: number, rootCol: number, matched: { row: number, col: number }[]) {
+        // for (const group of groups) {
+        //     this.tweenMatchedGroup(group.root, group.cells); // chỉ tween
+        // }
 
-        await this.delay(500);
+        // this.delay(500);
 
-        for (const group of groups) {
-            await this.ResetGroupAfterTween(group.root, group.cells);
-        }
+        // for (const group of groups) {
+        //     this.moveMatchedCellsToRoot(group.root, group.cells);
+        // }
+
+        this.moveMatchedCellsToRoot(rootRow, rootCol, matched);
+
+        // this.isAuto = false;
     }
-
-    private tweenMatchedGroup(root: { row: number, col: number }, matched: { row: number, col: number }[]) {
-        const rootNode = this.cells[root.row][root.col].GetCellUI();
-        const rootPos = rootNode.getPosition();
-
-        for (const cell of matched) {
-            if (cell.row === root.row && cell.col === root.col) continue;
-
-            const node = this.cells[cell.row][cell.col].GetCellUI();
-            const diffX = root.col - cell.col;
-            const diffY = root.row - cell.row;
-            const isDiagonal = diffX !== 0 && diffY !== 0;
-
-            if (isDiagonal) {
-                let middleCell = matched.find(c =>
-                    (c.row === cell.row && c.col === root.col) ||
-                    (c.col === cell.col && c.row === root.row)
-                );
-
-                if (middleCell) {
-                    const midNode = this.cells[middleCell.row][middleCell.col].GetCellUI();
-                    const midPos = midNode.getPosition();
-
-                    tween(node)
-                        .to(0.15, { position: midPos })
-                        .to(0.15, { position: rootPos })
-                        .start();
-                }
-            } else {
-                tween(node)
-                    .to(0.25, { position: rootPos })
-                    .start();
-            }
-        }
-    }
-
 
     private delay(ms: number) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
-
-
-    private async ResetGroupAfterTween(root: { row: number, col: number }, matched: { row: number, col: number }[]) {
-        const gridMgr = GridManager.getInstance();
-        const rootModel = gridMgr.grid[root.row][root.col];
-        const newValue = rootModel.value + 1;
-
-        gridMgr.ResetDataMatch(matched);
-
-        const newCellModel = new CellModel({
-            value: newValue,
-            color: gridMgr.GetColorByValue(newValue),
-            row: root.row,
-            col: root.col,
-        });
-
-        gridMgr.grid[root.row][root.col] = newCellModel;
-
-        for (const cell of matched) {
-            if (this.cells[cell.row][cell.col]) {
-                await this.cells[cell.row][cell.col].Dispose();
-                this.cells[cell.row][cell.col] = null;
-            }
-        }
-
-        const nodeCell = this.CreateCells(newCellModel);
-        const spawnPos = this.contains[root.row][root.col].position.clone();
-        spawnPos.y += 150;
-        nodeCell.GetCellUI().setPosition(spawnPos);
-        this.TweenFillNode(nodeCell.GetCellUI(), this.contains[root.row][root.col]);
-
-        this.cells[root.row][root.col] = nodeCell;
-        this.UpdateValueCellBeforeTween(root.row, root.col, nodeCell);
-    }
-
 
 }
 
