@@ -23,8 +23,9 @@ export class PoolObjectManager extends BaseSingleton<PoolObjectManager> {
         }
 
         parent.addChild(newNode)
-        newNode.active = true
-        return newNode
+        newNode.active = true;
+
+        return newNode;
     }
 
     RecycleObject(obj: Node, key: Prefab) {

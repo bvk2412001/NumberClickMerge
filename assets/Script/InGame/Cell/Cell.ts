@@ -1,4 +1,4 @@
-import { _decorator, Component, Input, log, Node, randomRange } from 'cc';
+import { _decorator, Component, EventTouch, Input, log, Node, randomRange } from 'cc';
 import { CellModel } from './CellModel';
 import { CellUI } from './CellUI';
 import { ECELL_CLICK_EFFECT, ECELL_STATE } from '../../Enum/ECell';
@@ -12,6 +12,8 @@ const { ccclass, property } = _decorator;
 
 @ccclass('Cell')
 export class Cell {
+    private clickHandler: (e: EventTouch) => void;
+
     public cellData: CellModel = null
     public cellUI: CellUI = null
     clickEffect: ECELL_CLICK_EFFECT = ECELL_CLICK_EFFECT.Up
@@ -21,6 +23,9 @@ export class Cell {
         this.cellData = cellData
         this.clickEffect = this.RandomEffectClick()
         this.CreateCellUI()
+
+        // chỉ bind MỘT lần rồi lưu lại
+        this.clickHandler = this.onClick.bind(this);
         this.RegisterEventClick()
     }
 
@@ -32,10 +37,10 @@ export class Cell {
 
 
     RegisterEventClick() {
-        this.GetCellUI().on(Input.EventType.TOUCH_END, this.onClick.bind(this))
+        this.GetCellUI().on(Input.EventType.TOUCH_END, this.clickHandler)
     }
     RemoveEventClick() {
-        this.GetCellUI().off(Input.EventType.TOUCH_END, this.onClick.bind(this))
+        this.GetCellUI().off(Input.EventType.TOUCH_END, this.clickHandler)
     }
 
     onClick() {
@@ -44,7 +49,9 @@ export class Cell {
             return;
         }
 
-        console.table(GridManager.getInstance().grid.map(r => r.map(c => c.value)));
+        // console.table(GridManager.getInstance().grid.map(r => r.map(c => c.value)));
+
+        log('onclick ---')
 
         this.UpdateCellWhenClick();
 
@@ -58,11 +65,11 @@ export class Cell {
 
     UpdateCellWhenClick() {
         if (this.clickEffect == ECELL_CLICK_EFFECT.Up) {
-            if (this.cellData.value == GridManager.getInstance().numberMax - 1) return;
+            if (this.cellData.value >= GridManager.getInstance().NumberMax - 1) return;
             this.cellData.value++
         }
         else {
-            if (this.cellData.value == GridManager.getInstance().numberMin) return;
+            if (this.cellData.value == GridManager.getInstance().NumberMin) return;
             this.cellData.value--
         }
         this.cellData.color = GridManager.getInstance().GetColorByValue(this.cellData.value)

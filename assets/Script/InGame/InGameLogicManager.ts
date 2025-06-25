@@ -154,6 +154,8 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         const rootModel = gridMgr.grid[root.row][root.col];
         const newValue = rootModel.value + 1;
 
+        GridManager.getInstance().NumberMax = newValue + 1;
+
         log('root: ', root)
         log('rootModel: ', rootModel)
         log('newValue: ', newValue)
@@ -314,15 +316,12 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         this.fillIntheBlank();
         GridManager.getInstance().FillIntheValue();
 
+        log(this.cells)
     }
 
     private processAllMatchGroups(rootRow: number, rootCol: number, matched: { row: number, col: number }[]) {
 
         this.moveMatchedCellsToRoot(rootRow, rootCol, matched);
-    }
-
-    private delay(ms: number) {
-        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
 }
