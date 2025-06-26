@@ -26,7 +26,7 @@ export class Cell {
 
         // chỉ bind MỘT lần rồi lưu lại
         this.clickHandler = this.onClick.bind(this);
-        this.RegisterEventClick()
+        this.RegisterEventClick();
     }
 
     public CreateCellUI(): void {

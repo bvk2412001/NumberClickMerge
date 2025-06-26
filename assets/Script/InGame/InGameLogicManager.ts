@@ -94,6 +94,8 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
     }
 
     public moveMatchedCellsToRoot(rootRow: number, rootCol: number, matched: { row: number, col: number }[]) {
+        this.isProcessing = true;
+
         const rootNode = this.cells[rootRow][rootCol].GetCellUI();
         const rootPos = rootNode.getPosition();
 
@@ -144,6 +146,8 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
                 // Chỉ chạy duy nhất 1 lần
                 this.ResetGrid(matched);
                 finished++;
+
+                this.isProcessing = false;
             }
         })
     }
@@ -230,6 +234,11 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         const { row, col, cell } = payload; // Destructure payload
         if (this.cells[row][col]) {
             const existingCell = this.cells[row][col];
+
+            const startPos = this.contains[GameManager.getInstance().dataGame.json["row"] - 1][col].position.clone();
+            startPos.y += 250;
+            existingCell.GetCellUI().setPosition(startPos);
+
             existingCell.cellData = cell;
             this.UpdateValueCellBeforeTween(row, col, existingCell);
             this.TweenFillNode(existingCell.GetCellUI(), this.contains[row][col]);
