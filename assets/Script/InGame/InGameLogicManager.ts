@@ -10,6 +10,9 @@ import { Cell } from './Cell/Cell';
 import { BaseSingleton } from '../Base/BaseSingleton';
 import { EventBus } from '../Utils/EventBus';
 import { EventGame } from '../Enum/EEvent';
+import { DataManager } from '../Manager/DataManager';
+import { AudioManager } from '../Manager/AudioManager';
+import { SFXType } from '../Enum/Enum';
 const { ccclass, property } = _decorator;
 
 @ccclass('InGameLogicManager')
@@ -148,6 +151,12 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
                 finished++;
 
                 this.isProcessing = false;
+
+                let heart = DataManager.getInstance().MyHeart; // thêm heart
+                DataManager.getInstance().MyHeart = heart + 1;
+                EventBus.emit(EventGame.UPDATE_HEARt_UI);
+
+                AudioManager.getInstance().playSFX(SFXType.Merge);
             }
         })
     }
@@ -159,10 +168,6 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         const newValue = rootModel.value + 1;
 
         GridManager.getInstance().NumberMax = newValue + 1;
-
-        log('root: ', root)
-        log('rootModel: ', rootModel)
-        log('newValue: ', newValue)
 
         // Gán -1 cho toàn bộ ô matched (bao gồm root)
         gridMgr.ResetDataMatch(matched);
@@ -313,12 +318,10 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
             return;
         }
 
-
         let cellRoot = matchGroups[0];
         let rootRow = cellRoot.root.row;
         let rootCol = cellRoot.root.col;
         let matched = cellRoot.cells
-
 
         this.processAllMatchGroups(rootRow, rootCol, matched);
 

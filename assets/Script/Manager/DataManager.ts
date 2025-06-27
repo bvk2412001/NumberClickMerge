@@ -15,6 +15,18 @@ export class DataManager extends BaseSingleton<DataManager> {
         localStorage.setItem("firstGame", value.toString());
     }
 
+    // #region My Heart
+    public get MyHeart(): number {
+        const saved = localStorage.getItem("myHeart");
+        return saved !== null ? parseInt(saved) : 5;
+    }
+
+    public set MyHeart(value: number) {
+        if (value > 5) return;
+
+        localStorage.setItem("myHeart", value.toString());
+    }
+
     // #region NumberMax
     public get NumberMax(): number {
         const saved = localStorage.getItem("numberMax");

@@ -5,6 +5,7 @@ import { GameManager } from '../Manager/GameManager';
 import { EventBus } from '../Utils/EventBus';
 import { EventGame } from '../Enum/EEvent';
 import { DataManager } from '../Manager/DataManager';
+import { Utils } from '../Utils/Utils';
 const { ccclass, property } = _decorator;
 
 @ccclass('GridManager')

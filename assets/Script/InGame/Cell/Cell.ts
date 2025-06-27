@@ -8,6 +8,12 @@ import { InGameLogicManager } from '../InGameLogicManager';
 import { InGameUIManager } from '../InGameUIManager';
 import { Action } from '../../Utils/EventWrapper';
 import { GridManager } from '../GridManager';
+import { Utils } from '../../Utils/Utils';
+import { HeartUi } from '../Heart/HeartUi';
+import { EventBus } from '../../Utils/EventBus';
+import { EventGame } from '../../Enum/EEvent';
+import { AudioManager } from '../../Manager/AudioManager';
+import { SFXType } from '../../Enum/Enum';
 const { ccclass, property } = _decorator;
 
 @ccclass('Cell')
@@ -49,6 +55,8 @@ export class Cell {
             return;
         }
 
+        AudioManager.getInstance().playSFX(SFXType.Spawn);
+
         // console.table(GridManager.getInstance().grid.map(r => r.map(c => c.value)));
 
         log('onclick ---')
@@ -56,7 +64,10 @@ export class Cell {
         this.UpdateCellWhenClick();
 
         const matched = GridManager.getInstance().findConnectedCells(this.cellData.row, this.cellData.col);
-        if (matched == null || matched == undefined) return;
+        if (matched == null || matched == undefined) {
+            //lose
+            return;
+        }
         log('matched: ', matched);
         if (matched.length < 3) return;
 
@@ -73,8 +84,11 @@ export class Cell {
             this.cellData.value--
         }
         this.cellData.color = GridManager.getInstance().GetColorByValue(this.cellData.value)
-        this.cellUI.UpdateUICell(this.cellData, this.clickEffect, this.cellState)
+        this.cellUI.UpdateUICell(this.cellData, this.clickEffect, this.cellState);
 
+        Utils.getInstance().UpdateHeart(-1); // trừ đi 1 heart
+
+        EventBus.emit(EventGame.UPDATE_HEARt_UI);
     }
 
     UpDateWhenMerge() {
@@ -99,6 +113,7 @@ export class Cell {
         // add cellUi vào pooling
         PoolObjectManager.getInstance().RecycleObject(this.GetCellUI(), PrefabManager.getInstance().cellPrefab);
     }
+
 
 }
 

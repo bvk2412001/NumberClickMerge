@@ -20,7 +20,7 @@ export class EventBus {
     }
 
     // Phát sự kiện
-    public static emit(event: string, payload: any): void {
+    public static emit(event: string, payload?: any): void {
         if (this.events[event]) {
             this.events[event].forEach((callback) => callback(payload));
         }
