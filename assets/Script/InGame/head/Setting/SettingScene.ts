@@ -1,7 +1,7 @@
 import { _decorator, Component, director, EventTouch, Label, log, Node, Sprite, SpriteFrame, tween, Vec3 } from 'cc';
-import { BaseTouch } from '../../Base/BaseTouch';
-import { AudioManager } from '../../Manager/AudioManager';
-import { DataManager } from '../../Manager/DataManager';
+import { BaseTouch } from '../../../Base/BaseTouch';
+import { AudioManager } from '../../../Manager/AudioManager';
+import { DataManager } from '../../../Manager/DataManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('SettingScene')
@@ -125,6 +125,10 @@ export class SettingScene extends BaseTouch {
 
     TouchStart(event: EventTouch) {
         this.node.active = false;
+
+        this.node.children.forEach(element => {
+            element.active = false;
+        })
 
         event.propagationStopped = true;
     }

@@ -96,70 +96,85 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         // }, 0.3)
     }
 
-    public moveMatchedCellsToRoot(rootRow: number, rootCol: number, matched: { row: number, col: number }[]) {
+    public moveMatchedCellsToRoot(
+        rootRow: number,
+        rootCol: number,
+        matched: { row: number, col: number }[]
+    ) {
         this.isProcessing = true;
 
         const rootNode = this.cells[rootRow][rootCol].GetCellUI();
         const rootPos = rootNode.getPosition();
 
-        let finished = 0;                                   // đếm tween đã xong
-        const needFinish = matched.length - 1;
+        let finished = 0;
+        const needFinish = matched.length - 1;      // bỏ gốc
 
+        //  Nếu chỉ có 1 ô trong matched → reset ngay
+        if (needFinish === 0) {
+            this.ResetAfterTween(matched);
+            return;
+        }
+
+        //   Tween từng ô */
         for (const cell of matched) {
-            if (cell.row === rootRow && cell.col === rootCol) continue;
+            if (cell.row === rootRow && cell.col === rootCol) continue; // bỏ gốc
 
             const node = this.cells[cell.row][cell.col].GetCellUI();
-            // const startPos = node.getPosition();
 
-            const diffX = rootCol - cell.col;
-            const diffY = rootRow - cell.row;
+            /*        Ô đang chéo              */
+            if (cell.row !== rootRow && cell.col !== rootCol) {
+                // Hai giao‑điểm, góc vuông đúng
+                const corner1 = { row: cell.row, col: rootCol }; // ( cell.row , rootCol)
+                const corner2 = { row: rootRow, col: cell.col }; // ( rootRow , cell.col)
 
-            const isDiagonal = diffX !== 0 && diffY !== 0;
-
-            if (isDiagonal) {
-                let middleCell = matched.find(c =>
-                    (c.row === cell.row && c.col === rootCol) || // cùng hàng với node hiện tại và cột gốc
-                    (c.col === cell.col && c.row === rootRow)    // cùng cột với node hiện tại và hàng gốc
+                // Kiểm xem giao‑điểm nào nằm trong matched
+                const hasCorner1 = matched.some(
+                    c => c.row === corner1.row && c.col === corner1.col
+                );
+                const hasCorner2 = matched.some(
+                    c => c.row === corner2.row && c.col === corner2.col
                 );
 
-                if (middleCell) {
-                    const midNode = this.cells[middleCell.row][middleCell.col].GetCellUI();
-                    const midPos = midNode.getPosition();
-                    console.log(midNode, midPos)
-                    tween(node)
-                        .to(0.15, { position: midPos })
-                        .to(0.15, { position: rootPos })
-                        .call(() => {
-                            finished++;
-                        })
-                        .start();
-                }
+                // Chọn góc vuông ưu tiên có trong matched
+                const midRow = hasCorner1 || !hasCorner2 ? corner1.row : corner2.row;
+                const midCol = hasCorner1 || !hasCorner2 ? corner1.col : corner2.col;
+
+                const midPos = this.contains[midRow][midCol].position.clone();
+
+                tween(node)
+                    .to(0.15, { position: midPos })   // chặng 1
+                    .to(0.15, { position: rootPos })  // chặng 2
+                    .call(() => ++finished)
+                    .start();
             } else {
+                // Đã thẳng hàng/cột
                 tween(node)
                     .to(0.25, { position: rootPos })
-                    .call(() => {
-                        finished++;
-                    })
+                    .call(() => ++finished)
                     .start();
             }
         }
 
-        this.schedule(() => {
+        const watcher = () => {
             if (finished === needFinish) {
-                // Chỉ chạy duy nhất 1 lần
-                this.ResetGrid(matched);
-                finished++;
-
-                this.isProcessing = false;
-
-                let heart = DataManager.getInstance().MyHeart; // thêm heart
-                DataManager.getInstance().MyHeart = heart + 1;
-                EventBus.emit(EventGame.UPDATE_HEARt_UI);
-
-                AudioManager.getInstance().playSFX(SFXType.Merge);
+                this.unschedule(watcher);
+                this.ResetAfterTween(matched);
             }
-        })
+        };
+        this.schedule(watcher);
     }
+
+    private ResetAfterTween(matched: { row: number, col: number }[]) {
+        this.ResetGrid(matched);
+        this.isProcessing = false;
+
+        DataManager.getInstance().MyHeart += 1;
+        EventBus.emit(EventGame.UPDATE_HEARt_UI);
+
+        AudioManager.getInstance().playSFX(SFXType.Merge);
+    }
+
+
 
     ResetGrid(matched: { row: number, col: number }[]) {
         const root = matched[0]; // ô đầu tiên là gốc

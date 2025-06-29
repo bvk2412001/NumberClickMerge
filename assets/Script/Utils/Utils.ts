@@ -25,6 +25,8 @@ export class Utils extends BaseSingleton<Utils> {
     //#region AdsManager
     ShowAdsReward(call?: CallableFunction) {
 
+        log('ads');
+
         if (typeof call === 'function') {
             call();
         }
