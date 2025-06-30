@@ -14,6 +14,7 @@ import { EventBus } from '../../Utils/EventBus';
 import { EventGame } from '../../Enum/EEvent';
 import { AudioManager } from '../../Manager/AudioManager';
 import { SFXType } from '../../Enum/Enum';
+import { DataManager } from '../../Manager/DataManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('Cell')
@@ -24,6 +25,8 @@ export class Cell {
     public cellUI: CellUI = null
     clickEffect: ECELL_CLICK_EFFECT = ECELL_CLICK_EFFECT.Up
     cellState: ECELL_STATE = ECELL_STATE.None
+
+    private readonly MAX_DOWN = 6;
 
     constructor(cellData: CellModel) {
         this.cellData = cellData
@@ -102,9 +105,26 @@ export class Cell {
     }
 
     RandomEffectClick(): ECELL_CLICK_EFFECT {
+
+        const gridMgr = GridManager.getInstance();
+        const minValue = DataManager.getInstance().NumberMin;
+
+        // ❶ Nếu ô đang ở giá trị nhỏ nhất → luôn Up
+        if (this.cellData.value === minValue) return ECELL_CLICK_EFFECT.Up;
+
+        let dataCountDown = this.GetDataCountDown();
+        if (dataCountDown == this.MAX_DOWN) return ECELL_CLICK_EFFECT.Up;
+
         let random = randomRange(0, 1)
 
-        return random > 0.5 ? ECELL_CLICK_EFFECT.Up : ECELL_CLICK_EFFECT.Down
+        return random > 0.2 ? ECELL_CLICK_EFFECT.Up : ECELL_CLICK_EFFECT.Down
+    }
+
+    GetDataCountDown() {
+        let cellCollection = InGameLogicManager.getInstance().cellCollection;
+        let listCellDown = cellCollection.filter(cell => cell.clickEffect == ECELL_CLICK_EFFECT.Down);
+
+        return listCellDown.length;
     }
 
     Dispose() {

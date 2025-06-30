@@ -34,7 +34,7 @@ export class CellUI extends Component {
         this.index.string = dataCell.value.toString()
 
         if (clickEffect == ECELL_CLICK_EFFECT.Up) {
-            this.up.active = true
+            this.up.active = false
             this.down.active = false
         }
         else {
