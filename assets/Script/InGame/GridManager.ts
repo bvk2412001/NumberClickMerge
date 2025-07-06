@@ -4,8 +4,8 @@ import { BaseSingleton } from '../Base/BaseSingleton';
 import { GameManager } from '../Manager/GameManager';
 import { EventBus } from '../Utils/EventBus';
 import { EventGame } from '../Enum/EEvent';
-import { DataManager } from '../Manager/DataManager';
-import { Utils } from '../Utils/Utils';
+import { PopupManager } from '../Manager/PopupManager';
+
 const { ccclass, property } = _decorator;
 
 @ccclass('GridManager')
@@ -13,57 +13,16 @@ export class GridManager extends BaseSingleton<GridManager> {
     private GRID_ROWS = 6;
     private GRID_COLS = 5;
     public grid: CellModel[][] = [];
-    private numberMax = 8
+    public numberMax = 8
 
-    private numberMin = 1
+    public numberMin = 1
 
-    public colors: string[] = ["#8C37E4", "#31DA28", "#FF963D", "#12D5C6", "#F54444", "#1592DD", "#DA36B3", "#4449DE", "#8C37E4"]
+    public colors: string[] = ["#CDC958", "#31DA28", "#FF963D", "#12D5C6", "#F54444", "#1592DD", "#DA36B3", "#4449DE", "#8C37E4"]
 
-
-    public get NumberMax() {
-        return this.numberMax;
-    }
-
-    public set NumberMax(number: number) {
-        if (number <= this.numberMax) return;
-
-        log('number: ', number)
-
-        DataManager.getInstance().NumberMax = number;
-
-        this.numberMax = DataManager.getInstance().NumberMax;
-    }
-
-    public get NumberMin() {
-        return this.numberMin;
-    }
-
-    public set NumberMin(number: number) {
-        if (number <= this.numberMin) return;
-
-        DataManager.getInstance().NumberMin = number;
-
-        this.numberMin = DataManager.getInstance().NumberMin;
-    }
-
-    LoadMinMax() {
-        let min = DataManager.getInstance().NumberMin;
-        let max = DataManager.getInstance().NumberMax;
-
-        DataManager.getInstance().NumberMin = min;
-        DataManager.getInstance().NumberMax = max;
-
-        this.numberMin = DataManager.getInstance().NumberMin;
-        this.numberMax = DataManager.getInstance().NumberMax;
-
-        log('this.numberMin: ', this.numberMin)
-        log('this.numberMax: ', this.numberMax)
-    }
 
     protected onLoad(): void {
         this.initGrid();
         this.CreateBoard();
-        this.LoadMinMax();
     }
 
     // Khởi tạo lưới
@@ -262,6 +221,17 @@ export class GridManager extends BaseSingleton<GridManager> {
                 }
             }
         }
+    }
+
+    CheckUpdateMaxCurrent(value: number) {
+        if (value == this.numberMax) {
+            PopupManager.getInstance().ShowPopupUnlockMax()
+            this.numberMax++
+            return true
+        }
+
+        return false
+
     }
 }
 

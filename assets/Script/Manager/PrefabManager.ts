@@ -9,6 +9,14 @@ export class PrefabManager extends BaseSingleton<PrefabManager> {
 
     @property({ type: Prefab, group: { name: "INGAME" } })
     cellContainPrefab: Prefab = null
+
+    @property({ type: Prefab, group: { name: "POPUP" } })
+    popupUnlock: Prefab = null
+
+
+
+
+    
 }
 
 

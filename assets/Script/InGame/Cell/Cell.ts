@@ -79,11 +79,17 @@ export class Cell {
 
     UpdateCellWhenClick() {
         if (this.clickEffect == ECELL_CLICK_EFFECT.Up) {
-            if (this.cellData.value >= GridManager.getInstance().NumberMax - 1) return;
+            if (this.cellData.value >= GridManager.getInstance().numberMax - 1) {
+                this.cellUI.PlayAnimationShake()
+                return;
+            }
             this.cellData.value++
         }
         else {
-            if (this.cellData.value == GridManager.getInstance().NumberMin) return;
+            if (this.cellData.value == GridManager.getInstance().numberMin) {
+                this.cellUI.PlayAnimationShake()
+                return;
+            }
             this.cellData.value--
         }
         this.cellData.color = GridManager.getInstance().GetColorByValue(this.cellData.value)

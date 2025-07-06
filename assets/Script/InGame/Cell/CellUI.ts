@@ -1,4 +1,4 @@
-import { _decorator, Color, Component, Label, Node, Sprite } from 'cc';
+import { _decorator, Animation, Color, Component, Label, Node, Sprite } from 'cc';
 import { CellModel } from './CellModel';
 import { ECELL_CLICK_EFFECT, ECELL_STATE } from '../../Enum/ECell';
 const { ccclass, property } = _decorator;
@@ -50,6 +50,9 @@ export class CellUI extends Component {
         }
     }
 
+    PlayAnimationShake() {
+        this.node.getComponent(Animation).play()
+    }
 
 }
 

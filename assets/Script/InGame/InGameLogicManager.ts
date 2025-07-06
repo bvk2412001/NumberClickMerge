@@ -182,8 +182,6 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         const rootModel = gridMgr.grid[root.row][root.col];
         const newValue = rootModel.value + 1;
 
-        GridManager.getInstance().NumberMax = newValue + 1;
-
         // Gán -1 cho toàn bộ ô matched (bao gồm root)
         gridMgr.ResetDataMatch(matched);
 
@@ -213,10 +211,12 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         this.cells[root.row][root.col] = nodeCell;
         this.UpdateValueCellBeforeTween(root.row, root.col, nodeCell);
 
+
+
         // Fill tiếp và check match tiếp theo
         this.fillIntheBlank();
         gridMgr.FillIntheValue();
-
+        GridManager.getInstance().CheckUpdateMaxCurrent(newValue)
         this.scheduleOnce(() => {
             this.checkAllMatchingGroupsLoop();
         })
@@ -280,8 +280,6 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
 
         tween(node)
             .to(0.2, { position: targetNode.position.clone() })
-
-
             .start();
 
 
@@ -337,8 +335,10 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         let rootRow = cellRoot.root.row;
         let rootCol = cellRoot.root.col;
         let matched = cellRoot.cells
+        this.scheduleOnce(() => {
+            this.processAllMatchGroups(rootRow, rootCol, matched);
+        }, 0.3)
 
-        this.processAllMatchGroups(rootRow, rootCol, matched);
 
         this.fillIntheBlank();
         GridManager.getInstance().FillIntheValue();
