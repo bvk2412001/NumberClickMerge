@@ -879,7 +879,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Claim",
+    "_name": "btnClose",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {

@@ -37,7 +37,7 @@ export class PopupUnlockMin extends Component {
 
     init() {
 
-        let numberMin = GridManager.getInstance().numberMin
+        let numberMin = GridManager.getInstance().numberMin - 1
         this.CreateCell(numberMin, CellPopupState.CURRENT)
         this.CreateCell(numberMin + 1, CellPopupState.NEXT)
     }
@@ -51,7 +51,7 @@ export class PopupUnlockMin extends Component {
 
 
     onScrollEvent() {
-       
+
     }
 
     btnClose() {
