@@ -1,6 +1,8 @@
 import { _decorator, Component, instantiate, Layout, Node, PageView, Prefab, tween, Vec2, Vec3 } from 'cc';
 import { GridManager } from '../GridManager';
-import { CellPopup, CellPopupState } from '../Cell/CellPopup';
+
+import { InGameLogicManager } from '../InGameLogicManager';
+import { CellPopupMax, CellPopupState } from '../Cell/CellPopupMax';
 const { ccclass, property } = _decorator;
 
 @ccclass('PopupUnlockMax')
@@ -17,8 +19,6 @@ export class PopupUnlockMax extends Component {
 
 
     show() {
-
-
         this.pageView.removeAllPages()
         this.pageView.content.getComponent(Layout).updateLayout()
         this.init()
@@ -34,14 +34,12 @@ export class PopupUnlockMax extends Component {
             .start()
 
 
-
-
     }
 
 
     init() {
 
-        let numberMax = GridManager.getInstance().numberMax
+        let numberMax = GridManager.getInstance().numberMax - 1
         this.CreateCell(numberMax - 2, CellPopupState.PRE)
         this.CreateCell(numberMax - 1, CellPopupState.CURRENT)
         this.CreateCell(numberMax, CellPopupState.NEXT)
@@ -53,27 +51,29 @@ export class PopupUnlockMax extends Component {
     CreateCell(value, state) {
         let cell = instantiate(this.cellPrefab)
         this.pageView.addPage(cell)
-        cell.getComponent(CellPopup).setUp(value, state)
+        cell.getComponent(CellPopupMax).setUp(value, state)
     }
 
 
     onScrollEvent() {
         this.pageView.content.children.forEach((e, index) => {
             if (index == this.pageView.curPageIdx) {
-                e.getComponent(CellPopup).updateState(CellPopupState.CURRENT)
+                e.getComponent(CellPopupMax).updateState(CellPopupState.CURRENT)
             }
             if (index < this.pageView.curPageIdx) {
-                e.getComponent(CellPopup).updateState(CellPopupState.PRE)
+                e.getComponent(CellPopupMax).updateState(CellPopupState.PRE)
             }
 
             if (index > this.pageView.curPageIdx) {
-                e.getComponent(CellPopup).updateState(CellPopupState.NEXT)
+                e.getComponent(CellPopupMax).updateState(CellPopupState.NEXT)
             }
         })
     }
 
     btnClaim() {
         this.node.active = false
+        
+        GridManager.getInstance().CheckUpDateMinCurrent()
     }
 
 }

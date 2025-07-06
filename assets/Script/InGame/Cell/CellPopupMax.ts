@@ -8,8 +8,8 @@ export enum CellPopupState {
     NEXT = 2
 }
 
-@ccclass('CellPopup')
-export class CellPopup extends Component {
+@ccclass('CellPopupMax')
+export class CellPopupMax extends Component {
     @property(Label)
     index: Label = null
 
@@ -46,6 +46,7 @@ export class CellPopup extends Component {
                 }
                 else {
                     this.node.getComponent(Animation).play()
+                    tween(this.node).to(1, { scale: new Vec3(1.4, 1.4, 1.4) }).start()
                     this.scheduleOnce(() => {
                         this.node.getComponent(Animation).stop()
                         this.UpdateUICurrent()

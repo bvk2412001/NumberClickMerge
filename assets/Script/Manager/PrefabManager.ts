@@ -11,12 +11,13 @@ export class PrefabManager extends BaseSingleton<PrefabManager> {
     cellContainPrefab: Prefab = null
 
     @property({ type: Prefab, group: { name: "POPUP" } })
-    popupUnlock: Prefab = null
+    popupUnlockMax: Prefab = null
+
+    @property({ type: Prefab, group: { name: "POPUP" } })
+    popupUnlockMin: Prefab = null
 
 
 
-
-    
 }
 
 

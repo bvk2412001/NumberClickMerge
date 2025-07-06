@@ -13,6 +13,7 @@ import { EventGame } from '../Enum/EEvent';
 import { DataManager } from '../Manager/DataManager';
 import { AudioManager } from '../Manager/AudioManager';
 import { SFXType } from '../Enum/Enum';
+import { PopupManager } from '../Manager/PopupManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('InGameLogicManager')
@@ -23,6 +24,9 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
 
     contains = []
     cells = []
+
+
+    isUpLevel = false
 
     private isProcessing: boolean = false;
 
@@ -216,10 +220,13 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         // Fill tiếp và check match tiếp theo
         this.fillIntheBlank();
         gridMgr.FillIntheValue();
-        GridManager.getInstance().CheckUpdateMaxCurrent(newValue)
+        if (GridManager.getInstance().CheckUpdateMaxCurrent(newValue) == true) {
+            this.isUpLevel = true
+        }
         this.scheduleOnce(() => {
             this.checkAllMatchingGroupsLoop();
-        })
+
+        }, 0.25)
     }
 
     async fillIntheBlank() {
@@ -327,7 +334,11 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         var matchGroups = this.findAllMatchedGroups();
         if (matchGroups.length === 0) {
             this.isProcessing = false; // cho phép click lại
-            error("Không còn ô nào match.");
+            console.error("Không còn ô nào match.");
+            if (this.isUpLevel == true) {
+                PopupManager.getInstance().ShowPopupUnlockMax()
+                this.isUpLevel = false
+            }
             return;
         }
 
@@ -335,14 +346,14 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         let rootRow = cellRoot.root.row;
         let rootCol = cellRoot.root.col;
         let matched = cellRoot.cells
-        this.scheduleOnce(() => {
-            this.processAllMatchGroups(rootRow, rootCol, matched);
-        }, 0.3)
+
 
 
         this.fillIntheBlank();
         GridManager.getInstance().FillIntheValue();
-
+        this.scheduleOnce(() => {
+            this.processAllMatchGroups(rootRow, rootCol, matched);
+        }, 0.3)
         log(this.cells)
     }
 

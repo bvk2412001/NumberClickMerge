@@ -12615,8 +12615,12 @@
       "__uuid__": "a6bb68aa-04c1-4948-96a1-cdc76e1986b5",
       "__expectedType__": "cc.Prefab"
     },
-    "popupUnlock": {
+    "popupUnlockMax": {
       "__uuid__": "1378f4f4-3aa0-49dc-a607-f32cee8d25b7",
+      "__expectedType__": "cc.Prefab"
+    },
+    "popupUnlockMin": {
+      "__uuid__": "ec5fa4e5-4326-4cb1-9b89-7523a24e5707",
       "__expectedType__": "cc.Prefab"
     },
     "_id": "4b+4Qe0kJKUbbtIfhbeaoB"
