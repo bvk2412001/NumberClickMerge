@@ -71,8 +71,6 @@ export class CellPopupMax extends Component {
         this.mask.active = false
     }
 
-
-
 }
 
 

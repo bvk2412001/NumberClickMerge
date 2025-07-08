@@ -25,7 +25,6 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
     contains = []
     cells = []
 
-
     isUpLevel = false
 
     private isProcessing: boolean = false;
@@ -354,7 +353,7 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         this.scheduleOnce(() => {
             this.processAllMatchGroups(rootRow, rootCol, matched);
         }, 0.3)
-        log(this.cells)
+        log('this.cells: ', this.cells)
     }
 
     private processAllMatchGroups(rootRow: number, rootCol: number, matched: { row: number, col: number }[]) {
@@ -362,6 +361,122 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         this.moveMatchedCellsToRoot(rootRow, rootCol, matched);
     }
 
+
+    //#region xoá tất cả min
+    /** Xoá toàn bộ ô min rồi rơi & fill lại, min này khi tăng số ô lên mới đúng */
+    public removeAllMinCells(): void {
+
+        if (this.isProcessing) return;
+
+        const gridMgr = GridManager.getInstance();
+        const rows = GameManager.getInstance().dataGame.json["row"];
+        const cols = GameManager.getInstance().dataGame.json["col"];
+        const minVal = gridMgr.numberMin - 1; // chưa hiểu vì sao trừ 1
+
+        log('minVal: ', minVal)
+
+        const cellsToRemove: { row: number, col: number }[] = [];
+
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                if (gridMgr.grid[i][j].value === minVal) {
+                    cellsToRemove.push({ row: i, col: j });
+                }
+            }
+        }
+
+        if (cellsToRemove.length === 0) {
+            console.warn("[removeAllMinCells] Không có ô min nào để xoá.");
+            return;
+        }
+
+        gridMgr.ResetDataMatch(cellsToRemove);
+
+        for (const c of cellsToRemove) {
+            if (this.cells[c.row][c.col]) {
+                this.cells[c.row][c.col].cellUI.PlayAnimationShakeLoop();
+                this.isProcessing = true;
+
+                this.scheduleOnce(() => {
+                    this.cells[c.row][c.col].cellUI.StopAnimationShake();
+                    this.cells[c.row][c.col].Dispose();
+                    this.cells[c.row][c.col] = null;
+                }, 1)
+            }
+        }
+
+        this.scheduleOnce(() => {
+            this.isProcessing = true;
+            this.fillIntheBlank();
+            gridMgr.FillIntheValue();
+
+            this.scheduleOnce(() => {
+                this.checkAllMatchingGroupsLoop();
+            }, 0.3);
+        }, 1.1)
+    }
+
+    //#region xoá tất cả min khi dùng tools
+    public removeAllMinCellsTools(): void {
+        if (this.isProcessing) return;
+
+        const gridMgr = GridManager.getInstance();
+        const rows = GameManager.getInstance().dataGame.json["row"];
+        const cols = GameManager.getInstance().dataGame.json["col"];
+
+        const collectCells = (value: number) => {
+            const list: { row: number, col: number }[] = [];
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    if (gridMgr.grid[i][j].value === value) list.push({ row: i, col: j });
+                }
+            }
+            return list;
+        };
+
+        let targetVal = 1; // lấy min là 1 luôn cho bao quát trường hợp
+        let cellsToRemove: { row: number, col: number }[] = [];
+
+        while (targetVal <= gridMgr.numberMax) {
+            cellsToRemove = collectCells(targetVal);
+            if (cellsToRemove.length > 0) break;     // đã tìm được
+            targetVal++;                             // thử giá trị kế tiếp
+        }
+
+        if (cellsToRemove.length === 0) {
+            console.warn(`[removeAllMinCells] Không tìm thấy ô nào trong khoảng ${gridMgr.numberMin}…${gridMgr.numberMax}.`);
+            return;
+        }
+
+        gridMgr.ResetDataMatch(cellsToRemove);
+
+        for (const c of cellsToRemove) {
+            const cellRef = this.cells[c.row][c.col];
+            if (cellRef) {
+                cellRef.cellUI.PlayAnimationShakeLoop();
+            }
+        }
+
+        this.isProcessing = true;
+
+        this.scheduleOnce(() => {
+            for (const c of cellsToRemove) {
+                const cellRef = this.cells[c.row][c.col];
+                if (cellRef) {
+                    cellRef.cellUI.StopAnimationShake();
+                    cellRef.Dispose();
+                    this.cells[c.row][c.col] = null;
+                }
+            }
+
+            this.fillIntheBlank();
+            gridMgr.FillIntheValue();
+
+            this.scheduleOnce(() => {
+                this.checkAllMatchingGroupsLoop();   // tự mở khoá click khi xong
+            }, 0.3);
+        }, 1);
+    }
 }
 
 

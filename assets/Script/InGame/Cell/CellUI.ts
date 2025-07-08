@@ -1,4 +1,4 @@
-import { _decorator, Animation, Color, Component, Label, Node, Sprite } from 'cc';
+import { _decorator, Animation, AnimationClip, AnimationState, Color, Component, Label, Node, Sprite } from 'cc';
 import { CellModel } from './CellModel';
 import { ECELL_CLICK_EFFECT, ECELL_STATE } from '../../Enum/ECell';
 const { ccclass, property } = _decorator;
@@ -19,6 +19,8 @@ export class CellUI extends Component {
 
     @property(Node)
     frame: Node = null
+
+    private _shakeState: AnimationState | null = null;
 
     SetUp(data) {
         this.index.string = data["index"]
@@ -51,9 +53,34 @@ export class CellUI extends Component {
     }
 
     PlayAnimationShake() {
-        this.node.getComponent(Animation).play()
+        this.node.getComponent(Animation).play();
     }
 
+    PlayAnimationShakeLoop() {
+        const anim = this.node.getComponent(Animation);
+
+        this._shakeState = anim.getState(anim.defaultClip.name);
+
+        this._shakeState.wrapMode = AnimationClip.WrapMode.Loop;
+        this._shakeState.repeatCount = Infinity;
+
+        this._shakeState.play();
+    }
+
+    StopAnimationShake() {
+        if (!this._shakeState) return;
+
+        this._shakeState.stop();
+
+        // Đặt thời gian về 0 rồi sample để áp pose khung 0
+        this._shakeState.time = 0;
+        this._shakeState.sample();   // ← KHÔNG có tham số
+
+        this._shakeState.wrapMode = AnimationClip.WrapMode.Normal;
+        this._shakeState.repeatCount = 1;
+
+        this._shakeState = null;
+    }
 }
 
 

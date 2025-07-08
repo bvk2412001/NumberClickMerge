@@ -17,7 +17,6 @@ export class PopupUnlockMin extends Component {
         // this.show()
     }
 
-
     show() {
         this.pageView.removeAllPages()
         this.pageView.content.getComponent(Layout).updateLayout()
@@ -30,8 +29,6 @@ export class PopupUnlockMin extends Component {
 
             })
             .start()
-
-
     }
 
 
@@ -55,7 +52,10 @@ export class PopupUnlockMin extends Component {
     }
 
     btnClose() {
-        this.node.active = false
+        this.node.active = false;
+
+        InGameLogicManager.getInstance().removeAllMinCells();
+        GridManager.getInstance().numberMin++;
     }
 }
 
