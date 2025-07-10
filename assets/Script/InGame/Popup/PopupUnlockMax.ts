@@ -72,8 +72,9 @@ export class PopupUnlockMax extends Component {
 
     btnClaim() {
         this.node.active = false
-        
-        GridManager.getInstance().CheckUpDateMinCurrent()
+
+        GridManager.getInstance().CheckUpDateMinCurrent();
+        InGameLogicManager.getInstance().UpdateAllFrames();
     }
 
 }

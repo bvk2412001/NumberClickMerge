@@ -1,7 +1,7 @@
 import { _decorator, Component, EventTouch, Input, log, Node, randomRange } from 'cc';
 import { CellModel } from './CellModel';
 import { CellUI } from './CellUI';
-import { ECELL_CLICK_EFFECT, ECELL_STATE } from '../../Enum/ECell';
+import { ECELL_CLICK_EFFECT, ECELL_STATE, ECLICK_MODE } from '../../Enum/ECell';
 import { PrefabManager } from '../../Manager/PrefabManager';
 import { PoolObjectManager } from '../../Manager/PoolObjectManager';
 import { InGameLogicManager } from '../InGameLogicManager';
@@ -25,6 +25,7 @@ export class Cell {
     public cellUI: CellUI = null
     clickEffect: ECELL_CLICK_EFFECT = ECELL_CLICK_EFFECT.Up
     cellState: ECELL_STATE = ECELL_STATE.None
+    public clickMode: ECLICK_MODE = ECLICK_MODE.NORMAL;
 
     private readonly MAX_DOWN = 6;
 
@@ -48,6 +49,7 @@ export class Cell {
     RegisterEventClick() {
         this.GetCellUI().on(Input.EventType.TOUCH_END, this.clickHandler)
     }
+
     RemoveEventClick() {
         this.GetCellUI().off(Input.EventType.TOUCH_END, this.clickHandler)
     }
@@ -60,21 +62,67 @@ export class Cell {
 
         AudioManager.getInstance().playSFX(SFXType.Spawn);
 
-        // console.table(GridManager.getInstance().grid.map(r => r.map(c => c.value)));
+        const currentMode = this.clickMode;
 
-        log('onclick ---')
+        switch (currentMode) {
+            case ECLICK_MODE.NORMAL:
+                this.HandleNormalClick();
+                break;
+
+            case ECLICK_MODE.HAMMER:
+                this.HandleHammerClick();
+                break;
+
+            case ECLICK_MODE.UPGRADE:
+                this.HandleUpgradeClick();
+                break;
+
+            case ECLICK_MODE.SWAP:
+                this.HandleSwapClick();
+                break;
+        }
+    }
+
+    HandleNormalClick() {
+        log('Normal click ---');
 
         this.UpdateCellWhenClick();
 
         const matched = GridManager.getInstance().findConnectedCells(this.cellData.row, this.cellData.col);
-        if (matched == null || matched == undefined) {
-            //lose
+        if (!matched || matched.length < 3) return;
+
+        InGameLogicManager.getInstance().ClickCheckToMove(this.cellData.row, this.cellData.col, matched);
+    }
+
+    HandleHammerClick() {
+        log('Hammer click ---');
+
+        this.SetEclickNoMal();
+
+        const inGameLogic = InGameLogicManager.getInstance();
+
+        inGameLogic.HandleHammerAt(this.cellData.row, this.cellData.col);
+    }
+
+    HandleUpgradeClick() {
+        log('Upgrade click ---');
+        if (this.cellData.value == GridManager.getInstance().numberMax - 1) return;
+
+        this.SetEclickNoMal();
+
+        const inGameLogic = InGameLogicManager.getInstance();
+
+        inGameLogic.HandleUpgradeAt(this.cellData.row, this.cellData.col);
+    }
+
+    HandleSwapClick() {
+        log('Swap click ---');
+
+        const inGameLogic = InGameLogicManager.getInstance();
+        if (inGameLogic.swapCallback) {
+            inGameLogic.swapCallback(this.cellData.row, this.cellData.col);
             return;
         }
-        log('matched: ', matched);
-        if (matched.length < 3) return;
-
-        InGameLogicManager.getInstance().ClickCheckToMove(this.cellData.row, this.cellData.col, matched); // match khi click
     }
 
     UpdateCellWhenClick() {
@@ -140,7 +188,12 @@ export class Cell {
         PoolObjectManager.getInstance().RecycleObject(this.GetCellUI(), PrefabManager.getInstance().cellPrefab);
     }
 
-
+    SetEclickNoMal() {
+        let CellCollection = InGameLogicManager.getInstance().cellCollection;
+        CellCollection.forEach(element => {
+            element.clickMode = ECLICK_MODE.NORMAL;
+        });
+    }
 }
 
 

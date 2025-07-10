@@ -1,6 +1,7 @@
 import { _decorator, Animation, AnimationClip, AnimationState, Color, Component, Label, Node, Sprite } from 'cc';
 import { CellModel } from './CellModel';
 import { ECELL_CLICK_EFFECT, ECELL_STATE } from '../../Enum/ECell';
+import { GridManager } from '../GridManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('CellUI')
@@ -44,8 +45,8 @@ export class CellUI extends Component {
             this.down.active = true
         }
 
-        if (dataCell.value > 7) {
-            this.frame.active = true
+        if (dataCell.value >= GridManager.getInstance().numberMax - 1) {
+            this.frame.active = true;
         }
         else {
             this.frame.active = false

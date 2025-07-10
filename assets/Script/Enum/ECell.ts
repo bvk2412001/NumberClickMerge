@@ -8,3 +8,10 @@ export enum ECELL_STATE {
     Boom = 1,
     Lock = 2
 }
+
+export enum ECLICK_MODE {
+    NORMAL,
+    HAMMER,
+    UPGRADE,
+    SWAP,
+}

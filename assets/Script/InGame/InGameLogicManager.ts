@@ -299,7 +299,9 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
 
         cell.cellData = model;
 
+        this.UpdateAllFrames();
         cell.cellUI.UpdateUICell(model, cell.clickEffect, cell.cellState);
+
     }
 
     private findAllMatchedGroups() {
@@ -361,6 +363,20 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         this.moveMatchedCellsToRoot(rootRow, rootCol, matched);
     }
 
+    //#region UpdateAllFrame
+    public UpdateAllFrames(): void {
+        const rows = GameManager.getInstance().dataGame.json["row"];
+        const cols = GameManager.getInstance().dataGame.json["col"];
+
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                const cell = this.cells[i][j];
+                if (cell) {
+                    cell.cellUI.UpdateUICell(cell.cellData, cell.clickEffect, cell.cellState);
+                }
+            }
+        }
+    }
 
     //#region xoá tất cả min
     /** Xoá toàn bộ ô min rồi rơi & fill lại, min này khi tăng số ô lên mới đúng */
@@ -460,6 +476,8 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         this.isProcessing = true;
 
         this.scheduleOnce(() => {
+            EventBus.emit(EventGame.TOOL_FINISHED);
+
             for (const c of cellsToRemove) {
                 const cellRef = this.cells[c.row][c.col];
                 if (cellRef) {
@@ -477,6 +495,157 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
             }, 0.3);
         }, 1);
     }
+
+    //#region Hammer tools
+    public async HandleHammerAt(row: number, col: number) {
+        if (this.isProcessing) return;
+
+        EventBus.emit(EventGame.TOOL_FINISHED);
+
+        this.isProcessing = true;
+
+        const gridMgr = GridManager.getInstance();
+
+        const targetCell = this.cells[row][col];
+        if (!targetCell) {
+            this.isProcessing = false;
+            return;
+        }
+
+        targetCell.cellUI.PlayAnimationShakeLoop();
+
+        await new Promise(r => setTimeout(r, 1000)); // chờ rung 1 s
+
+        targetCell.cellUI.StopAnimationShake();
+
+        // Xoá dữ liệu logic
+        gridMgr.grid[row][col].value = -1;
+        this.cells[row][col].Dispose();
+        this.cells[row][col] = null;
+
+        // Rơi và fill
+        await this.FillAfterHammer();
+
+        // Tự check merge
+        this.checkAllMatchingGroupsLoop();
+    }
+
+    /** Cho cell rơi xuống và fill lại sau khi dùng búa */
+    private async FillAfterHammer(): Promise<void> {
+        this.fillIntheBlank();
+        GridManager.getInstance().FillIntheValue();
+
+        return new Promise(resolve => {
+            this.scheduleOnce(() => {
+                resolve();
+            }, 0.3);
+        });
+    }
+
+    //#region Upgrade tools
+    public HandleUpgradeAt(row: number, col: number): void {
+        if (this.isProcessing) return;
+
+        EventBus.emit(EventGame.TOOL_FINISHED);
+
+        const gridMgr = GridManager.getInstance();
+        const cell = this.cells[row][col];
+        if (!cell) return;
+
+        const maxUpgradeVal = gridMgr.numberMax - 1;
+        const cellModel = cell.cellData;
+
+        // Không nâng cấp nếu đã >= max
+        if (cellModel.value >= maxUpgradeVal) {
+            cell.cellUI.PlayAnimationShake();
+            return;
+        }
+
+        // Cập nhật model
+        cellModel.value = maxUpgradeVal;
+        cellModel.color = gridMgr.GetColorByValue(maxUpgradeVal);
+
+        // Cập nhật UI
+        cell.cellUI.UpdateUICell(cellModel, cell.clickEffect, cell.cellState);
+
+        this.UpdateAllFrames();
+
+        // Nếu chạm mốc max, cập nhật unlock max
+        if (gridMgr.CheckUpdateMaxCurrent(maxUpgradeVal)) {
+            this.isUpLevel = true;
+        }
+    }
+
+    //#region Swap tools
+    public swapCallback: ((row: number, col: number) => void) = null;
+
+    public EnableSwapMode(callback: ((row: number, col: number) => void) | null) {
+        this.swapCallback = callback;
+    }
+
+    public async HandleSwap(a: { row: number, col: number }, b: { row: number, col: number }) {
+        if (this.isProcessing) return;
+        this.isProcessing = true;
+
+        const cellA = this.cells[a.row][a.col];
+        const cellB = this.cells[b.row][b.col];
+
+        if (!cellA || !cellB) {
+            this.isProcessing = false;
+            return;
+        }
+
+        // Hoán đổi logic
+        const tempModel = GridManager.getInstance().grid[a.row][a.col];
+        GridManager.getInstance().grid[a.row][a.col] = GridManager.getInstance().grid[b.row][b.col];
+        GridManager.getInstance().grid[b.row][b.col] = tempModel;
+
+        // Cập nhật vị trí model
+        GridManager.getInstance().grid[a.row][a.col].row = a.row;
+        GridManager.getInstance().grid[a.row][a.col].col = a.col;
+
+        GridManager.getInstance().grid[b.row][b.col].row = b.row;
+        GridManager.getInstance().grid[b.row][b.col].col = b.col;
+
+        // Hoán đổi UI
+        const posA = this.contains[a.row][a.col].position.clone();
+        const posB = this.contains[b.row][b.col].position.clone();
+
+        const nodeA = cellA.GetCellUI();
+        const nodeB = cellB.GetCellUI();
+
+        this.cells[a.row][a.col] = cellB;
+        this.cells[b.row][b.col] = cellA;
+
+        // Di chuyển node
+        const tweenA = new Promise(resolve => {
+            tween(nodeA).to(0.2, { position: posB }).call(resolve).start();
+        });
+        const tweenB = new Promise(resolve => {
+            tween(nodeB).to(0.2, { position: posA }).call(resolve).start();
+        });
+
+        await Promise.all([tweenA, tweenB]);
+
+        // Cập nhật UI sau khi swap
+        this.UpdateValueCellBeforeTween(a.row, a.col, this.cells[a.row][a.col]);
+        this.UpdateValueCellBeforeTween(b.row, b.col, this.cells[b.row][b.col]);
+
+        // Check match
+        const matchA = GridManager.getInstance().findConnectedCells(a.row, a.col);
+        const matchB = GridManager.getInstance().findConnectedCells(b.row, b.col);
+
+        const matched = matchA.length >= 3 ? matchA : matchB.length >= 3 ? matchB : null;
+
+        if (matched) {
+            this.scheduleOnce(() => {
+                this.processAllMatchGroups(matched[0].row, matched[0].col, matched);
+            }, 0.1);
+        } else {
+            this.isProcessing = false;
+        }
+    }
+
 }
 
 
