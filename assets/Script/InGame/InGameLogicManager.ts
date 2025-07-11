@@ -29,6 +29,8 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
 
     private isProcessing: boolean = false;
 
+    private consecutiveMerges: number = 0;
+
     public get IsProcessing() {
         return this.isProcessing;
     }
@@ -92,8 +94,8 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
     }
 
     ClickCheckToMove(rootRow: number, rootCol: number, matched: { row: number, col: number }[]) {
+        this.consecutiveMerges = 0;
         this.moveMatchedCellsToRoot(rootRow, rootCol, matched);
-
         // this.scheduleOnce(() => {
 
         // }, 0.3)
@@ -177,12 +179,22 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         AudioManager.getInstance().playSFX(SFXType.Merge);
     }
 
-
+    AddScoreAfterMerge(rootModel: CellModel, matched: { row: number, col: number }[]) {
+        this.consecutiveMerges++; // Tăng biến đếm combo
+        const value = rootModel.value; // Lấy giá trị của ô (trước khi tăng)
+        const groupSize = matched.length; // Lấy số lượng ô trong nhóm
+        const score = value * groupSize * this.consecutiveMerges; // Áp dụng công thức
+        EventBus.emit(EventGame.UPGRADE_SCORE, score);
+    }
 
     ResetGrid(matched: { row: number, col: number }[]) {
         const root = matched[0]; // ô đầu tiên là gốc
         const gridMgr = GridManager.getInstance();
         const rootModel = gridMgr.grid[root.row][root.col];
+
+        // Bắt đầu logic tính điểm
+        this.AddScoreAfterMerge(rootModel, matched);
+
         const newValue = rootModel.value + 1;
 
         // Gán -1 cho toàn bộ ô matched (bao gồm root)
