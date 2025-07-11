@@ -71,7 +71,7 @@ export class ScoreController extends Component {
 
     public updateScoreMax() {
         const score = DataManager.getInstance().highScore;
-        
+
         this.scoreUiCpn.SetValueMaxScore(score);
     }
 }

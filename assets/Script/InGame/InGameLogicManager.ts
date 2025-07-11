@@ -180,14 +180,29 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
     }
 
     AddScoreAfterMerge(rootModel: CellModel, matched: { row: number, col: number }[]) {
-        this.consecutiveMerges++; // Tăng biến đếm combo
         const value = rootModel.value; // Lấy giá trị của ô (trước khi tăng)
         const groupSize = matched.length; // Lấy số lượng ô trong nhóm
         const score = value * groupSize * this.consecutiveMerges; // Áp dụng công thức
         EventBus.emit(EventGame.UPGRADE_SCORE, score);
     }
 
+    private RewardGoldByCombo() {
+        const chance = Math.random();
+        log('change: ', chance);
+        if (chance > 0.3) return; // 70% không nhận
+        if (this.consecutiveMerges < 3) return; // chỉ từ combo 3
+
+        const gold = 10 * (this.consecutiveMerges - 2) + 10;
+
+        // DataManager.getInstance().Gold += gold;
+        EventBus.emit(EventGame.UPDATE_COIN_UI, gold);
+    }
+
+
     ResetGrid(matched: { row: number, col: number }[]) {
+
+        this.consecutiveMerges++; // Tăng biến đếm combo
+
         const root = matched[0]; // ô đầu tiên là gốc
         const gridMgr = GridManager.getInstance();
         const rootModel = gridMgr.grid[root.row][root.col];
@@ -196,6 +211,8 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         this.AddScoreAfterMerge(rootModel, matched);
 
         const newValue = rootModel.value + 1;
+
+        this.RewardGoldByCombo();
 
         // Gán -1 cho toàn bộ ô matched (bao gồm root)
         gridMgr.ResetDataMatch(matched);
@@ -348,10 +365,12 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         if (matchGroups.length === 0) {
             this.isProcessing = false; // cho phép click lại
             console.error("Không còn ô nào match.");
+
             if (this.isUpLevel == true) {
                 PopupManager.getInstance().ShowPopupUnlockMax()
                 this.isUpLevel = false
             }
+
             return;
         }
 
@@ -359,8 +378,6 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         let rootRow = cellRoot.root.row;
         let rootCol = cellRoot.root.col;
         let matched = cellRoot.cells
-
-
 
         this.fillIntheBlank();
         GridManager.getInstance().FillIntheValue();
@@ -586,6 +603,9 @@ export class InGameLogicManager extends BaseSingleton<InGameLogicManager> {
         if (gridMgr.CheckUpdateMaxCurrent(maxUpgradeVal)) {
             this.isUpLevel = true;
         }
+
+        // Tự check merge
+        this.checkAllMatchingGroupsLoop();
     }
 
     //#region Swap tools

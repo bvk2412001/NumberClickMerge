@@ -3,6 +3,7 @@ import { GameManager } from '../Manager/GameManager';
 import { GridManager } from './GridManager';
 import { CellUI } from './Cell/CellUI';
 import { BaseSingleton } from '../Base/BaseSingleton';
+import { Lose } from './Lose/Lose';
 
 const { ccclass, property } = _decorator;
 
@@ -14,6 +15,9 @@ export class InGameUIManager extends BaseSingleton<InGameUIManager> {
 
     @property(Node)
     cellNode: Node = null
+
+    @property(Lose)
+    lose: Lose = null
 
     UpdateLayoutContainCell() {
         this.containNode.getComponent(Layout).updateLayout();

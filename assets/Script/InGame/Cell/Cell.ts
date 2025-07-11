@@ -89,7 +89,14 @@ export class Cell {
         this.UpdateCellWhenClick();
 
         const matched = GridManager.getInstance().findConnectedCells(this.cellData.row, this.cellData.col);
-        if (!matched || matched.length < 3) return;
+        if (!matched || matched.length < 3) {
+            if (DataManager.getInstance().MyHeart <= 0) {
+                // lose
+                log('lose');
+                InGameUIManager.getInstance().lose.ShowFXLose();
+            }
+            return;
+        }
 
         InGameLogicManager.getInstance().ClickCheckToMove(this.cellData.row, this.cellData.col, matched);
     }
@@ -140,12 +147,13 @@ export class Cell {
             }
             this.cellData.value--
         }
-        this.cellData.color = GridManager.getInstance().GetColorByValue(this.cellData.value)
-        this.cellUI.UpdateUICell(this.cellData, this.clickEffect, this.cellState);
 
         Utils.getInstance().UpdateHeart(-1); // trừ đi 1 heart
 
         EventBus.emit(EventGame.UPDATE_HEARt_UI);
+
+        this.cellData.color = GridManager.getInstance().GetColorByValue(this.cellData.value)
+        this.cellUI.UpdateUICell(this.cellData, this.clickEffect, this.cellState);
     }
 
     UpDateWhenMerge() {

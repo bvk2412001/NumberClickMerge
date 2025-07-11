@@ -4,4 +4,5 @@ export enum EventGame {
     TOOL_FINISHED = 'tool_finish',
     UPGRADE_SCORE = 'upgrade_score',
     UPGRADE_SCOREPLUSH = 'upgrade_scoreplus',
+    UPDATE_COIN_UI = 'update_ui_coin',
 }

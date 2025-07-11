@@ -8,14 +8,14 @@ export class FXShadow extends AutoComponent {
     @property({ type: UIOpacity })
     shadow: UIOpacity = null;
 
-    LoadShadow() {
-        if (this.shadow != null) return;
-        this.shadow = find('Canvas/IngameUIManager/Shadow').getComponent(UIOpacity);
-    }
+    // LoadShadow() {
+    //     if (this.shadow != null) return;
+    //     this.shadow = find('Canvas/IngameUIManager/Shadow').getComponent(UIOpacity);
+    // }
 
-    protected LoadComponent(): void {
-        this.LoadShadow();
-    }
+    // protected LoadComponent(): void {
+    //     this.LoadShadow();
+    // }
 
     ShowFxShadow(): Promise<void> {
         return new Promise((resolve) => {
@@ -67,6 +67,33 @@ export class FXShadow extends AutoComponent {
             const posLocal = guide.getPosition().clone();
             tween(guide)
                 .to(0.3, { position: new Vec3(-1080, posLocal.y, posLocal.z) })
+                .call(() => {
+                    guide.active = false;
+                    resolve();
+                })
+                .start();
+        })
+    }
+
+    ShowFxBox(guide: Node): Promise<void> {
+        return new Promise((resolve) => {
+            guide.active = true;
+            const posLocal = guide.getPosition().clone();
+            guide.setPosition(-1080, posLocal.y, posLocal.z);
+            tween(guide)
+                .to(0.3, { position: new Vec3(0, posLocal.y, posLocal.z) })
+                .call(() => {
+                    resolve();
+                })
+                .start();
+        })
+    }
+
+    HideFxBox(guide: Node): Promise<void> {
+        return new Promise((resolve) => {
+            const posLocal = guide.getPosition().clone();
+            tween(guide)
+                .to(0.3, { position: new Vec3(1080, posLocal.y, posLocal.z) })
                 .call(() => {
                     guide.active = false;
                     resolve();

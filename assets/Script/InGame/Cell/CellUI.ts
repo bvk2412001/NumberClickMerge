@@ -45,7 +45,7 @@ export class CellUI extends Component {
             this.down.active = true
         }
 
-        if (dataCell.value >= GridManager.getInstance().numberMax - 1) {
+        if (dataCell.value >= GridManager.getInstance().numberMax - 1 && dataCell.value > 7) {
             this.frame.active = true;
         }
         else {

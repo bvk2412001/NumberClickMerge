@@ -77,6 +77,16 @@ export class DataManager extends BaseSingleton<DataManager> {
         localStorage.setItem("CoreInPlayGame", value.toString());
     }
 
+    // #region gold
+    public get Gold(): number {
+        const saved = localStorage.getItem("Gold");
+        return saved ? parseInt(saved) : 0;
+    }
+
+    public set Gold(value: number) {
+        localStorage.setItem("Gold", value.toString());
+    }
+
     // #region DataMusic
     public get DataMusic(): boolean {
         const saved = localStorage.getItem("DataMusic");

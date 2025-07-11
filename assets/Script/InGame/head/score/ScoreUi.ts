@@ -15,7 +15,7 @@ export class ScoreUi extends AutoComponent {
     maxScoreLabel: Label = null;
     @property({ type: Label })
     labelScorePlus: Label = null;
-    
+
     LoadScoreNode() {
         if (this.scoreNode) return;
         this.scoreNode = this.node.getChildByName('score');
@@ -33,14 +33,14 @@ export class ScoreUi extends AutoComponent {
 
     LoadMaxScoreLabel() {
         if (this.maxScoreLabel) return;
-        this.maxScoreLabel =  this.node.getChildByPath('maxScore/value').getComponent(Label);
+        this.maxScoreLabel = this.node.getChildByPath('maxScore/value').getComponent(Label);
     }
 
     LoadLabelScorePlus() {
         if (this.labelScorePlus) return;
         this.labelScorePlus = this.node.getChildByPath('score/plus').getComponent(Label);
     }
-    
+
     LoadComponent(): void {
         this.LoadScoreNode();
         this.LoadScoreLabel();
@@ -86,7 +86,7 @@ export class ScoreUi extends AutoComponent {
 
     public updateScorePlus(score: number) {
         this.labelScorePlus.node.active = true;
-        
+
         this.labelScorePlus.string = `+${score}`;
 
         this.labelScorePlus.node.getComponent(Animation).play();

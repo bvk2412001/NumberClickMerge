@@ -70,14 +70,14 @@ export class Ingame_Tool extends Component {
 
     //#region tool hammer
     async OnHammer() {
-        await this.ShowFxShadow();
-
         this.SetEclickTools(ECLICK_MODE.HAMMER);
+
+        await this.ShowFxShadow();
     }
 
     //#region tool swap
     async OnSwap() {
-        await this.ShowFxShadow();
+        this.ShowFxShadow();
 
         this.firstSwapCell = null;
 
@@ -121,9 +121,9 @@ export class Ingame_Tool extends Component {
 
     //#region up grade
     async OnUpGrade() {
-        await this.ShowFxShadow();
-
         this.SetEclickTools(ECLICK_MODE.UPGRADE);
+
+        await this.ShowFxShadow();
     }
 
     async ShowFxShadow() { // hiệu ứng bóng và chặn event
